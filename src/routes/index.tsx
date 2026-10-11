@@ -200,6 +200,13 @@ function Index() {
         </div>
       </section>
 
+      <Shelf
+        title="mais vendidos"
+        sub="Modelos selecionados da coleção"
+        items={vendidos.length ? vendidos : novos.slice(0, 12)}
+        link={{ search: { ordem: "vendidos" } }}
+      />
+
       <Shelf title="lançamentos" sub="Acabaram de chegar" items={novos} link={{ search: { novo: "1" } }} />
 
       <section className="section" style={{ padding: "24px 0" }}>
@@ -223,9 +230,7 @@ function Index() {
         </div>
       </section>
 
-      {vendidos.length ? (
-        <Shelf title="mais vendidos" sub="Os favoritos de quem já comprou" items={vendidos} link={{ search: { ordem: "vendidos" } }} />
-      ) : (
+      {!vendidos.length && (
         grandes.map((c) => (
           <Shelf
             key={c.slug}
