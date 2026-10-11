@@ -1,5 +1,5 @@
 # Infrastructure setup
-- [ ] Research market-popular catalog models and replace the provisional homepage selection, with matching collection filtering and checks.
+- [x] Research market-popular catalog models and replace the provisional homepage selection, with matching collection filtering and checks.
 - [x] Replace the homepage banner with the existing Moleca homepage video and verify playback.
 - [x] Import original shop source unchanged.
 - [x] Apply five original SQL migrations and verify tables/realtime/types.
