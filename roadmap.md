@@ -1,4 +1,5 @@
 # Infrastructure setup
+- [ ] Add the requested Shopee model as one product with all verified colors to the bestselling selection; awaiting listing identification.
 - [x] Research market-popular catalog models and replace the provisional homepage selection, with matching collection filtering and checks.
 - [x] Replace the homepage banner with the existing Moleca homepage video and verify playback.
 - [x] Import original shop source unchanged.
