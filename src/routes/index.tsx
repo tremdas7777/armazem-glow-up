@@ -155,10 +155,10 @@ function Index() {
       <section className="campaign-banner" aria-label="Campanha Moleca">
         <div className="campaign-banner__media">
           <iframe
-            src={`https://www.youtube.com/embed/iDNa9Vke-cY?autoplay=${autoPlayVideo ? "1" : "0"}&mute=1&loop=1&playlist=iDNa9Vke-cY&playsinline=1&rel=0`}
+            src={`https://www.youtube.com/embed/iDNa9Vke-cY?autoplay=${autoPlayVideo ? "1" : "0"}&mute=1&loop=1&playlist=iDNa9Vke-cY&playsinline=1&rel=0&controls=0&disablekb=1&fs=0&iv_load_policy=3`}
             title="Moleca — vídeo da campanha oficial"
+            tabIndex={-1}
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
             referrerPolicy="strict-origin-when-cross-origin"
           />
         </div>
