@@ -30,3 +30,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Segredos (chaves de gateway, Supabase, senha do admin)
+.env
+.env.*
+!.env.example
+
+# Configuração local do Claude Code
+.claude/
