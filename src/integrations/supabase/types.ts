@@ -77,6 +77,7 @@ export type Database = {
           id: string
           ip: string | null
           paid_reported_at: string | null
+          report_result: Json | null
           status: string
           ua: string | null
           updated_at: string
@@ -94,6 +95,7 @@ export type Database = {
           id: string
           ip?: string | null
           paid_reported_at?: string | null
+          report_result?: Json | null
           status?: string
           ua?: string | null
           updated_at?: string
@@ -111,6 +113,7 @@ export type Database = {
           id?: string
           ip?: string | null
           paid_reported_at?: string | null
+          report_result?: Json | null
           status?: string
           ua?: string | null
           updated_at?: string
