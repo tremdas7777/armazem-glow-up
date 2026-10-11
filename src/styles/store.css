@@ -246,7 +246,7 @@ html { scroll-behavior: smooth; }
   padding: 18px 16px 22px; display: flex; flex-direction: column; text-align: center; transition: box-shadow .25s;
 }
 .store .card:hover { box-shadow: var(--shadow); z-index: 1; }
-.store .card__media { aspect-ratio: 1/1; display: grid; place-items: center; overflow: hidden; margin-bottom: 14px; }
+.store .card__media { aspect-ratio: 1/1; display: grid; place-items: center; overflow: hidden; margin: -4px -4px 14px; border-radius: var(--radius); background: var(--white); }
 .store .card__media img { width: 100%; height: 100%; object-fit: contain; transition: transform .4s ease; }
 .store .card:hover .card__media img, .store .card:hover .card__media .ph { transform: scale(1.05); }
 .store .card__ref { color: var(--pink); font-size: 12px; font-weight: 600; letter-spacing: .06em; }
@@ -505,6 +505,13 @@ html { scroll-behavior: smooth; }
 .store .banner--yellow h3 { color: var(--pink); }
 .store .banner--plum { background: var(--plum); }
 .store .banner--plum h3 { color: var(--yellow); }
+.store .banner:has(.banner__photo) { padding-right: 52%; min-height: 300px; }
+.store .banner__photo { position: absolute; right: 0; top: 0; width: 48%; height: 100%; object-fit: contain; background: var(--white); padding: 12px; transition: transform .4s ease; }
+.store .banner:hover .banner__photo { transform: scale(1.03); }
+@media (max-width: 599px) {
+  .store .banner:has(.banner__photo) { padding: 24px 24px 250px; }
+  .store .banner__photo { top: auto; bottom: 0; width: 100%; height: 225px; padding: 16px; }
+}
 
 /* Abas por categoria */
 .store .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 24px; scrollbar-width: none; }
@@ -553,7 +560,7 @@ html { scroll-behavior: smooth; }
 .store .page-hero--sm { padding: 44px 16px; }
 .store .page-hero--sm h1 { font-size: clamp(34px, 5vw, 60px); }
 @media (max-width: 599px) {
-  .store .hero2__collage { display: none; }
+  .store .hero2__collage { display: block; max-width: 320px; }
   .store .hero2__inner { padding: 36px 16px 32px; }
   .store .hero2 p { margin: 12px 0 20px; }
   .store .hero2__stats { margin-top: 22px; gap: 20px; }
@@ -562,7 +569,7 @@ html { scroll-behavior: smooth; }
   .store .shelf-nav { display: none; }
 }
 .store .hero2__collage .blob { overflow: hidden; }
-.store .hero2__collage .blob img { width: 100%; height: 100%; object-fit: cover; }
+.store .hero2__collage .blob img { width: 100%; height: 100%; object-fit: contain; background: var(--white); padding: 8px; }
 .store .card__media img { background: #fff; }
 .store .gallery__main:has(img) { background: #fff; border: 1px solid var(--line); }
 
