@@ -144,6 +144,8 @@ function Index() {
   const grandes = [...cats].sort((a, b) => count(b.slug) - count(a.slug)).slice(0, 2);
   const picks = cats.slice(0, 3).map((c) => novos.find((p) => p.categoria === c.slug) ?? PRODUCTS.find((p) => p.categoria === c.slug)!);
   const marcas = [...new Set(PRODUCTS.map((p) => p.marca))];
+  const ofertaImage = PRODUCTS.find((p) => p.categoria === "tenis" && p.imagens[0]);
+  const bolsaImage = PRODUCTS.find((p) => p.categoria === "bolsas" && p.imagens[0]);
 
   return (
     <SiteLayout>
@@ -229,11 +231,13 @@ function Index() {
             search={maxOff ? { oferta: "1" } : { ate: "100", ordem: "menor" }}
             className="banner banner--yellow"
           >
+            {ofertaImage && <img className="banner__photo" src={ofertaImage.imagens[0]} alt={ofertaImage.nome} loading="lazy" />}
             <h3>{maxOff ? `ofertas até ${maxOff}% off` : `a partir de ${brl(menor)}`}</h3>
             <p>{maxOff ? "Preços especiais em toda a loja." : "Modelos lindos que cabem no bolso."}</p>
             <span className="btn btn--pink">{maxOff ? "Aproveitar" : "Ver até R$ 100"}</span>
           </Link>
           <Link to="/colecao" search={{ cat: "bolsas" }} className="banner banner--plum">
+            {bolsaImage && <img className="banner__photo" src={bolsaImage.imagens[0]} alt={bolsaImage.nome} loading="lazy" />}
             <h3>complete o look</h3>
             <p>Bolsas que combinam com todos os seus pares.</p>
             <span className="btn btn--yellow">Ver bolsas</span>
