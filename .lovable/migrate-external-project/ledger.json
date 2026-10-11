@@ -3,15 +3,15 @@
     "capability": "code",
     "source": "GitHub ZIP",
     "outcome": "Import unchanged source",
-    "status": "pending",
-    "next_action": "Copy source"
+    "status": "verified",
+    "next_action": "None"
   },
   {
     "capability": "schema",
     "source": "GitHub ZIP",
     "outcome": "Apply five original migrations in order",
-    "status": "pending",
-    "next_action": "Apply SQL"
+    "status": "verified",
+    "next_action": "None"
   },
   {
     "capability": "records",
@@ -31,15 +31,15 @@
     "capability": "authorization",
     "source": "GitHub ZIP",
     "outcome": "Original RLS and admin checks retained",
-    "status": "pending",
-    "next_action": "Review"
+    "status": "verified",
+    "next_action": "Original RLS enabled on all four tables; public event insert retained"
   },
   {
     "capability": "assets",
     "source": "GitHub ZIP",
     "outcome": "Original source-controlled assets retained",
-    "status": "pending",
-    "next_action": "Verify rendering"
+    "status": "verified",
+    "next_action": "None"
   },
   {
     "capability": "providers",
@@ -59,14 +59,14 @@
     "capability": "cutover",
     "source": "GitHub ZIP",
     "outcome": "Publish new Lovable URL",
-    "status": "pending",
-    "next_action": "Security scan and publish"
+    "status": "ready",
+    "next_action": "Request publish"
   },
   {
     "capability": "verification",
     "source": "GitHub ZIP",
     "outcome": "Automatic build and existing tests",
-    "status": "pending",
-    "next_action": "Run tests"
+    "status": "verified",
+    "next_action": "None"
   }
 ]
