@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Preserve the imported shop source and business logic; infrastructure migrations are applied from the original SQL without rewriting them. This keeps the existing store behavior unchanged.
+- Retain integration-managed Cloud configuration and clients from this project when importing external source, so the shop uses its new isolated database.

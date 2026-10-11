@@ -1,0 +1,72 @@
+[
+  {
+    "capability": "code",
+    "source": "GitHub ZIP",
+    "outcome": "Import unchanged source",
+    "status": "pending",
+    "next_action": "Copy source"
+  },
+  {
+    "capability": "schema",
+    "source": "GitHub ZIP",
+    "outcome": "Apply five original migrations in order",
+    "status": "pending",
+    "next_action": "Apply SQL"
+  },
+  {
+    "capability": "records",
+    "source": "GitHub ZIP",
+    "outcome": "New database requested",
+    "status": "accepted",
+    "next_action": "None"
+  },
+  {
+    "capability": "auth identities",
+    "source": "GitHub ZIP",
+    "outcome": "Admin password retained",
+    "status": "ready",
+    "next_action": "Verify admin"
+  },
+  {
+    "capability": "authorization",
+    "source": "GitHub ZIP",
+    "outcome": "Original RLS and admin checks retained",
+    "status": "pending",
+    "next_action": "Review"
+  },
+  {
+    "capability": "assets",
+    "source": "GitHub ZIP",
+    "outcome": "Original source-controlled assets retained",
+    "status": "pending",
+    "next_action": "Verify rendering"
+  },
+  {
+    "capability": "providers",
+    "source": "GitHub ZIP",
+    "outcome": "Retain payment/tracking providers",
+    "status": "pending",
+    "next_action": "Optional credentials not supplied"
+  },
+  {
+    "capability": "secrets",
+    "source": "GitHub ZIP",
+    "outcome": "ADMIN_PASSWORD saved; empty optional secrets unsupported",
+    "status": "partial",
+    "next_action": "Supply optional values when needed"
+  },
+  {
+    "capability": "cutover",
+    "source": "GitHub ZIP",
+    "outcome": "Publish new Lovable URL",
+    "status": "pending",
+    "next_action": "Security scan and publish"
+  },
+  {
+    "capability": "verification",
+    "source": "GitHub ZIP",
+    "outcome": "Automatic build and existing tests",
+    "status": "pending",
+    "next_action": "Run tests"
+  }
+]
