@@ -17,6 +17,7 @@ export const Route = createFileRoute("/pedido/$id")({
   head: () => ({
     meta: [
       { name: "description", content: `Detalhes do pedido na ${brand.name}.` },
+      { property: "og:title", content: `Pedido | ${brand.name}` },
       { property: "og:description", content: `Detalhes do pedido na ${brand.name}.` },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },{ title: `Pedido | ${brand.name}` }, { name: "robots", content: "noindex" }],

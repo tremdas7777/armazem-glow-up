@@ -6,7 +6,7 @@ import { brands } from "@/lib/catalog";
 export const Route = createFileRoute("/sobre")({
   head: () => ({
     meta: [
-      { property: "og:description", content: `Conheça a ${brand.name },
+      { property: "og:description", content: `Conheça a ${brand.name}, loja multimarcas de calçados femininos.` },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: `Sobre a ${brand.name}` },
