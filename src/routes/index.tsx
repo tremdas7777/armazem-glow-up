@@ -164,6 +164,7 @@ function Index() {
                 </>
               )}
             </h1>
+            <p><strong>Revendedor Autorizado Moleca</strong></p>
             <p>Calçados de várias marcas, com cor, conforto e personalidade para cada passo.</p>
             <div className="hero__ctas">
               <Link to="/colecao" search={store.discountPct ? {} : { novo: "1" }} className="btn btn--yellow">
