@@ -13,7 +13,7 @@ const searchSchema = z.object({
   marca: z.string().max(60).optional(),
   q: z.string().max(80).optional(),
   novo: z.string().max(1).optional(),
-  destaques: z.literal("1").optional(),
+  destaques: z.preprocess((value) => value === 1 ? "1" : value, z.literal("1").optional()),
   oferta: z.string().max(1).optional(),
   tam: z.string().max(10).optional(),
   ate: z.string().max(6).optional(),
