@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/Layout";
 import { Price, ProductCard, ProductImage } from "@/components/store/ProductCard";
+import { Button } from "@/components/ui/button";
 import { brand } from "@/lib/brand";
 import { categoryName, getProduct, PRODUCTS } from "@/lib/catalog";
 import { MAX_QTY, useCart } from "@/lib/cart";
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/produto/$id")({
         { property: "og:description", content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}` },
         { property: "og:type", content: "product" },
         { name: "twitter:card", content: "summary_large_image" },
-        ...(p.imagens[0] ? [{ property: "og:image", content: p.imagens[0] }, { name: "twitter:image", content: p.imagens[0] }] : []),
+        ...(p.imagens[0]?.startsWith("https://") ? [{ property: "og:image", content: p.imagens[0] }, { name: "twitter:image", content: p.imagens[0] }] : []),
       ],
     };
   },
@@ -36,17 +37,21 @@ export const Route = createFileRoute("/produto/$id")({
 
 function ProductPage() {
   const { id } = Route.useLoaderData();
-  const p = getProduct(id)!;
+  const p = getProduct(id);
+  if (!p) throw notFound();
   const cart = useCart();
   const navigate = useNavigate();
-  const [size, setSize] = useState<string | null>(p.tamanhos.length === 1 ? p.tamanhos[0]! : null);
+  const [size, setSize] = useState<string | null>(p.tamanhos.length === 1 ? p.tamanhos[0] ?? null : null);
+  const [color, setColor] = useState(p.cores?.[0]?.nome ?? "");
+  const sizes = [...new Set(p.tamanhos.map((t) => t.split(" · ")[0] ?? t))];
   const [sizeError, setSizeError] = useState(false);
   const [qty, setQty] = useState(1);
   const [img, setImg] = useState(0);
   const { price } = priceOf(p);
 
   useEffect(() => {
-    setSize(p.tamanhos.length === 1 ? p.tamanhos[0]! : null);
+    setSize(p.tamanhos.length === 1 ? p.tamanhos[0] ?? null : null);
+    setColor(p.cores?.[0]?.nome ?? "");
     setQty(1);
     setImg(0);
     metaTrack("ViewContent", { value: price, contentName: p.nome });
@@ -62,7 +67,7 @@ function ProductPage() {
       setSizeError(true);
       return;
     }
-    cart.add(p.id, size, qty);
+    cart.add(p.id, p.cores?.length ? `${size} · ${color}` : size, qty);
     metaTrack("AddToCart", { value: price * qty, contentName: p.nome });
     if (goCheckout) navigate({ to: "/checkout" });
     else {
@@ -89,9 +94,13 @@ function ProductPage() {
             {p.imagens.length > 1 && (
               <div className="gallery__thumbs">
                 {p.imagens.map((src, i) => (
-                  <button key={src} className={`thumb ${i === img ? "active" : ""}`} onClick={() => setImg(i)}>
+                  <Button variant="ghost" key={src} aria-label={`Ver foto ${i + 1}`} className={`thumb ${i === img ? "active" : ""}`} onClick={() => {
+                    setImg(i);
+                    const option = p.cores?.find((c) => c.imagem === i);
+                    if (option) setColor(option.nome);
+                  }}>
                     <img src={src} alt="" />
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -108,11 +117,25 @@ function ProductPage() {
                 Cor <span>{p.cor}</span>
               </div>
             )}
+            {p.cores && (
+              <>
+                <div className="opt-label">Cor <span>{color}</span></div>
+                <div className="flex flex-wrap gap-2" aria-label="Cores disponíveis">
+                  {p.cores.map((c) => (
+                    <Button variant="outline" key={c.nome} title={c.nome} aria-label={`Cor ${c.nome}`} aria-pressed={color === c.nome}
+                      className={`thumb h-16 w-16 p-1 ${color === c.nome ? "active" : ""}`}
+                      onClick={() => { setColor(c.nome); setImg(c.imagem); }}>
+                      <img className="h-full w-full object-contain" src={p.imagens[c.imagem]} alt={c.nome} />
+                    </Button>
+                  ))}
+                </div>
+              </>
+            )}
             <div className="opt-label">
               Tamanho <span>{size ? `Selecionado: ${size}` : "Selecione"}</span>
             </div>
             <div className="sizes">
-              {p.tamanhos.map((t) => (
+              {sizes.map((t) => (
                 <button
                   key={t}
                   className={`size ${size === t ? "active" : ""}`}
@@ -173,7 +196,7 @@ function ProductPage() {
                     <tr><td>Referência</td><td>{p.ref}</td></tr>
                     <tr><td>Categoria</td><td>{categoryName(p.categoria)}</td></tr>
                     {p.cor && <tr><td>Cor</td><td>{p.cor}</td></tr>}
-                    <tr><td>Numeração</td><td>{p.tamanhos.join(", ")}</td></tr>
+                    <tr><td>Numeração</td><td>{sizes.join(", ")}</td></tr>
                   </tbody>
                 </table>
               </details>
