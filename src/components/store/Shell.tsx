@@ -49,17 +49,9 @@ function Header() {
 
   return (
     <>
-      {store.discountPct > 0 || store.freeShippingMin > 0 ? (
-        <div className="topbar">
-          {[
-            store.discountPct > 0 ? `${store.discountPct}% OFF em toda a loja` : null,
-            store.freeShippingMin > 0 ? `Frete grátis acima de ${brl(store.freeShippingMin)}` : null,
-            "Pagamento seguro no Pix",
-          ]
-            .filter(Boolean)
-            .join(" • ")}
-        </div>
-      ) : null}
+      <div className="topbar">
+        Calçados e bolsas para o seu dia a dia • Revendedor Autorizado Moleca
+      </div>
       <header className="header">
         <div className="header__inner">
           <button className="icon-btn menu-toggle" aria-label="Abrir menu" onClick={() => setMenu(true)}>
