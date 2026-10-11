@@ -6,8 +6,7 @@ import { ProductCard } from "@/components/store/ProductCard";
 import { brand } from "@/lib/brand";
 import { brands, CATEGORIAS, categoryName, PRODUCTS } from "@/lib/catalog";
 import { brl, priceOf } from "@/lib/store-settings";
-import { MARKET_EVIDENCE } from "@/lib/market-evidence";
-import { selectMarketProducts } from "@/lib/market-selection";
+import { bestsellerProducts } from "@/lib/bestseller-selection";
 
 const searchSchema = z.object({
   cat: z.string().max(40).optional(),
@@ -53,7 +52,7 @@ function Catalog() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const ate = Number(s.ate) || 0;
 
-  const selection = s.destaques ? selectMarketProducts(PRODUCTS, MARKET_EVIDENCE) : PRODUCTS;
+  const selection = s.destaques ? bestsellerProducts() : PRODUCTS;
   const base = selection.filter(
     (p) =>
       (!s.q || norm(`${p.nome}${p.ref}${p.marca}${categoryName(p.categoria)}`).includes(norm(s.q))) &&
@@ -64,7 +63,7 @@ function Catalog() {
     (p) =>
       (!s.cat || p.categoria === s.cat) &&
       (!s.marca || p.marca === s.marca) &&
-      (!s.tam || p.tamanhos.includes(s.tam)) &&
+      (!s.tam || p.tamanhos.some((t) => t.split(" · ")[0] === s.tam)) &&
       (!ate || priceOf(p).price <= ate),
   );
   const by = (f: (a: (typeof list)[number], b: (typeof list)[number]) => number) => (list = [...list].sort(f));
@@ -79,7 +78,7 @@ function Catalog() {
     setShown(PAGE);
     navigate({ search: (prev) => ({ ...prev, ...patch }) });
   };
-  const sizes = [...new Set(PRODUCTS.flatMap((p) => p.tamanhos))].sort((a, b) => (Number(a) || 999) - (Number(b) || 999));
+  const sizes = [...new Set(PRODUCTS.flatMap((p) => p.tamanhos.map((t) => t.split(" · ")[0] ?? t)))].sort((a, b) => (Number(a) || 999) - (Number(b) || 999));
   const allBrands = brands();
   const hasOffers = PRODUCTS.some((p) => priceOf(p).off > 0);
   const chips: [string, Partial<Search>][] = [
@@ -88,7 +87,7 @@ function Catalog() {
     ...(s.tam ? [[`Tam. ${s.tam}`, { tam: undefined }] as [string, Partial<Search>]] : []),
     ...(ate ? [[`Até ${brl(ate)}`, { ate: undefined }] as [string, Partial<Search>]] : []),
     ...(s.novo ? [["Lançamentos", { novo: undefined }] as [string, Partial<Search>]] : []),
-    ...(s.destaques ? [["Destaques do mercado", { destaques: undefined }] as [string, Partial<Search>]] : []),
+    ...(s.destaques ? [["Mais vendidos", { destaques: undefined }] as [string, Partial<Search>]] : []),
     ...(s.oferta ? [["Ofertas", { oferta: undefined }] as [string, Partial<Search>]] : []),
     ...(s.q ? [[`“${s.q}”`, { q: undefined }] as [string, Partial<Search>]] : []),
   ];
@@ -97,7 +96,6 @@ function Catalog() {
     <SiteLayout>
       <section className="page-hero page-hero--sm sequins">
         <h1>{title}</h1>
-        {s.destaques && <p>Modelos em destaque entre as sapatilhas mais vendidas na Amazon Brasil</p>}
         {s.q && <p>Resultados para “{s.q}”</p>}
       </section>
       <div className="container">
