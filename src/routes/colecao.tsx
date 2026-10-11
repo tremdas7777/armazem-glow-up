@@ -6,12 +6,15 @@ import { ProductCard } from "@/components/store/ProductCard";
 import { brand } from "@/lib/brand";
 import { brands, CATEGORIAS, categoryName, PRODUCTS } from "@/lib/catalog";
 import { brl, priceOf } from "@/lib/store-settings";
+import { MARKET_EVIDENCE } from "@/lib/market-evidence";
+import { selectMarketProducts } from "@/lib/market-selection";
 
 const searchSchema = z.object({
   cat: z.string().max(40).optional(),
   marca: z.string().max(60).optional(),
   q: z.string().max(80).optional(),
   novo: z.string().max(1).optional(),
+  destaques: z.literal("1").optional(),
   oferta: z.string().max(1).optional(),
   tam: z.string().max(10).optional(),
   ate: z.string().max(6).optional(),
@@ -50,7 +53,8 @@ function Catalog() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const ate = Number(s.ate) || 0;
 
-  const base = PRODUCTS.filter(
+  const selection = s.destaques ? selectMarketProducts(PRODUCTS, MARKET_EVIDENCE) : PRODUCTS;
+  const base = selection.filter(
     (p) =>
       (!s.q || norm(`${p.nome}${p.ref}${p.marca}${categoryName(p.categoria)}`).includes(norm(s.q))) &&
       (!s.novo || p.novo) &&
@@ -70,7 +74,7 @@ function Catalog() {
   if (s.ordem === "desconto") by((a, b) => priceOf(b).off - priceOf(a).off);
   if (s.ordem === "vendidos") by((a, b) => Number(!!b.maisVendido) - Number(!!a.maisVendido));
 
-  const title = s.q ? "Busca" : s.novo ? "Lançamentos" : s.oferta ? "Ofertas" : s.cat ? categoryName(s.cat) : s.marca ?? "Coleção";
+  const title = s.q ? "Busca" : s.destaques ? "Mais vendidos" : s.novo ? "Lançamentos" : s.oferta ? "Ofertas" : s.cat ? categoryName(s.cat) : s.marca ?? "Coleção";
   const go = (patch: Partial<Search>) => {
     setShown(PAGE);
     navigate({ search: (prev) => ({ ...prev, ...patch }) });
@@ -84,6 +88,7 @@ function Catalog() {
     ...(s.tam ? [[`Tam. ${s.tam}`, { tam: undefined }] as [string, Partial<Search>]] : []),
     ...(ate ? [[`Até ${brl(ate)}`, { ate: undefined }] as [string, Partial<Search>]] : []),
     ...(s.novo ? [["Lançamentos", { novo: undefined }] as [string, Partial<Search>]] : []),
+    ...(s.destaques ? [["Destaques do mercado", { destaques: undefined }] as [string, Partial<Search>]] : []),
     ...(s.oferta ? [["Ofertas", { oferta: undefined }] as [string, Partial<Search>]] : []),
     ...(s.q ? [[`“${s.q}”`, { q: undefined }] as [string, Partial<Search>]] : []),
   ];
@@ -92,6 +97,7 @@ function Catalog() {
     <SiteLayout>
       <section className="page-hero page-hero--sm sequins">
         <h1>{title}</h1>
+        {s.destaques && <p>Modelos em destaque entre as sapatilhas mais vendidas na Amazon Brasil</p>}
         {s.q && <p>Resultados para “{s.q}”</p>}
       </section>
       <div className="container">

@@ -6,6 +6,8 @@ import { ProductArt, ProductCard } from "@/components/store/ProductCard";
 import { brand } from "@/lib/brand";
 import { CATEGORIAS, categoriesWithProducts, PRODUCTS, type Produto } from "@/lib/catalog";
 import { brl, priceOf, store } from "@/lib/store-settings";
+import { MARKET_EVIDENCE } from "@/lib/market-evidence";
+import { selectMarketProducts } from "@/lib/market-selection";
 
 const TITLE = `${brand.name} | Sandálias, chinelos, tênis e mais`;
 const DESCRIPTION = `Calçados femininos de várias marcas: sandálias, chinelos, tamancos, sapatilhas, tênis e bolsas. Pagamento seguro no Pix e entrega para todo o Brasil.`;
@@ -146,6 +148,7 @@ function Index() {
   const maxOff = Math.max(0, ...ofertas.map((p) => priceOf(p).off));
   const menor = Math.min(...PRODUCTS.map((p) => priceOf(p).price));
   const vendidos = PRODUCTS.filter((p) => p.maisVendido);
+  const destaques = selectMarketProducts(PRODUCTS, MARKET_EVIDENCE);
   const grandes = [...cats].sort((a, b) => count(b.slug) - count(a.slug)).slice(0, 2);
   const ofertaImage = PRODUCTS.find((p) => p.categoria === "tenis" && p.imagens[0]);
   const bolsaImage = PRODUCTS.find((p) => p.categoria === "bolsas" && p.imagens[0]);
@@ -202,9 +205,9 @@ function Index() {
 
       <Shelf
         title="mais vendidos"
-        sub="Modelos selecionados da coleção"
-        items={vendidos.length ? vendidos : novos.slice(0, 12)}
-        link={{ search: { ordem: "vendidos" } }}
+        sub="Modelos em destaque entre as sapatilhas mais vendidas na Amazon Brasil"
+        items={destaques}
+        link={{ search: { destaques: "1" } }}
       />
 
       <Shelf title="lançamentos" sub="Acabaram de chegar" items={novos} link={{ search: { novo: "1" } }} />
