@@ -1,6 +1,6 @@
-/** Dados da loja Armazém dos Chinelos (loja multimarcas de calçados). */
+/** Dados da loja Armazem Feminino (loja multimarcas de calçados). */
 export const brand = {
-  name: "Armazém dos Chinelos",
+  name: "Armazem Feminino",
   tagline: "Calçados com personalidade",
   /** Dados da empresa: aparecem no rodapé, no checkout e nas políticas. */
   company: {
