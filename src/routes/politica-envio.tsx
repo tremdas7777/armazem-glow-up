@@ -23,14 +23,11 @@ export const Route = createFileRoute("/politica-envio")({
       <h2>Opções de frete</h2>
       <ul>
         <li>
-          Frete Padrão: {brl(store.shipping.padrao.price)}, {store.shipping.padrao.eta} após a postagem.
+          Frete Grátis, em todos os pedidos: {store.shipping.padrao.eta} após a postagem.
         </li>
         <li>
           Frete Express: {brl(store.shipping.express.price)}, {store.shipping.express.eta} após a postagem.
         </li>
-        {store.freeShippingMin > 0 && (
-          <li>Frete grátis (padrão) em compras a partir de {brl(store.freeShippingMin)} em produtos.</li>
-        )}
       </ul>
       <p>O valor e o prazo do frete aparecem no checkout, antes do pagamento. Não cobramos nada depois.</p>
       <h2>Rastreamento</h2>

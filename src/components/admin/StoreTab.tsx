@@ -14,8 +14,6 @@ import { brl, storeConfigSchema, type StoreConfig } from "@/lib/store-settings";
 
 type Draft = {
   discountPct: string;
-  freeShippingMin: string;
-  padraoPrice: string;
   padraoEta: string;
   expressPrice: string;
   expressEta: string;
@@ -23,8 +21,6 @@ type Draft = {
 
 const toDraft = (c: StoreConfig): Draft => ({
   discountPct: String(c.discountPct),
-  freeShippingMin: String(c.freeShippingMin).replace(".", ","),
-  padraoPrice: String(c.shipping.padrao.price).replace(".", ","),
   padraoEta: c.shipping.padrao.eta,
   expressPrice: String(c.shipping.express.price).replace(".", ","),
   expressEta: c.shipping.express.eta,
@@ -48,9 +44,8 @@ export function StoreTab({ password }: { password: string }) {
 
   const config = {
     discountPct: Math.round(num(draft.discountPct)),
-    freeShippingMin: num(draft.freeShippingMin),
     shipping: {
-      padrao: { price: num(draft.padraoPrice), eta: draft.padraoEta },
+      padrao: { eta: draft.padraoEta },
       express: { price: num(draft.expressPrice), eta: draft.expressEta },
     },
   };
@@ -111,9 +106,7 @@ export function StoreTab({ password }: { password: string }) {
               )}. 0 = sem desconto.`
             : "0 = sem desconto.",
         )}
-        {field("freeShippingMin", "Frete grátis a partir de (R$)", "0 = sem frete grátis.")}
-        {field("padraoPrice", "Frete Padrão (R$)")}
-        {field("padraoEta", "Prazo do Frete Padrão")}
+        {field("padraoEta", "Prazo do Frete Grátis", "Frete grátis vale para todos os pedidos.")}
         {field("expressPrice", "Frete Express (R$)")}
         {field("expressEta", "Prazo do Frete Express")}
       </div>

@@ -14,10 +14,9 @@ const money = z.number().finite().min(0).max(100_000);
 export const storeConfigSchema = z.object({
   /** Desconto aplicado em toda a loja (%). 0 = sem desconto. */
   discountPct: z.number().int().min(0).max(90),
-  /** Frete grátis a partir deste valor em produtos (R$). 0 = sem frete grátis. */
-  freeShippingMin: money,
   shipping: z.object({
-    padrao: z.object({ price: money, eta: z.string().trim().min(1).max(60) }),
+    /** Frete grátis, para todos os pedidos: só o prazo é configurável. */
+    padrao: z.object({ eta: z.string().trim().min(1).max(60) }),
     express: z.object({ price: money, eta: z.string().trim().min(1).max(60) }),
   }),
 });
@@ -26,9 +25,8 @@ export type StoreConfig = z.infer<typeof storeConfigSchema>;
 
 export const DEFAULT_STORE: StoreConfig = {
   discountPct: 50,
-  freeShippingMin: 299,
   shipping: {
-    padrao: { price: 19.9, eta: "5 a 8 dias úteis" },
+    padrao: { eta: "5 a 8 dias úteis" },
     express: { price: 34.9, eta: "2 a 4 dias úteis" },
   },
 };
@@ -56,18 +54,12 @@ export function priceOf(p: Produto): { price: number; compareAt: number | null; 
 export type FreteId = "gratis" | "padrao" | "express";
 export type Frete = { id: FreteId; name: string; eta: string; price: number };
 
-export const isFreeShippingEligible = (subtotal: number) =>
-  store.freeShippingMin > 0 && subtotal >= store.freeShippingMin;
-
-/** Opções de frete para um subtotal de produtos (grátis só quando atinge o mínimo). */
-export function fretesFor(subtotal: number): Frete[] {
-  const list: Frete[] = [
-    { id: "padrao", name: "Frete Padrão", eta: store.shipping.padrao.eta, price: store.shipping.padrao.price },
+/** Opções de frete: grátis em todo pedido, ou Express pago para chegar mais rápido. */
+export function fretes(): Frete[] {
+  return [
+    { id: "gratis", name: "Frete Grátis", eta: store.shipping.padrao.eta, price: 0 },
     { id: "express", name: "Frete Express", eta: store.shipping.express.eta, price: store.shipping.express.price },
   ];
-  if (isFreeShippingEligible(subtotal))
-    list.unshift({ id: "gratis", name: "Frete Grátis", eta: store.shipping.padrao.eta, price: 0 });
-  return list;
 }
 
 export const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

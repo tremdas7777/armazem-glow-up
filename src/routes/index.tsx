@@ -128,7 +128,7 @@ function CategoryTabs() {
 const PERKS = [
   {
     t: "Frete grátis",
-    s: () => (store.freeShippingMin > 0 ? `Acima de ${brl(store.freeShippingMin)}` : "Para todo o Brasil"),
+    s: () => "Para todo o Brasil",
     d: <><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></>,
   },
   { t: "Pix na hora", s: () => "Pedido separado assim que paga", d: <><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M3 10h18" /></> },

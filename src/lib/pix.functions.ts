@@ -31,6 +31,7 @@ const itemSchema = z.object({
   id: z.string().min(1).max(64),
   tamanho: z.string().min(1).max(20),
   qtd: z.number().int().min(1).max(10),
+  bump: z.boolean().optional(),
 });
 
 const customerSchema = z.object({
@@ -46,7 +47,7 @@ const customerSchema = z.object({
     .transform((v) => v.replace(/\D/g, ""))
     .refine(isValidCpf, "CPF inválido"),
   origin: z.string().url(),
-  frete: z.enum(["gratis", "padrao", "express"]).default("padrao"),
+  frete: z.enum(["gratis", "padrao", "express"]).default("gratis"),
   endereco: z.string().max(300).optional(),
   address: z.object({
     street: z.string().trim().min(1).max(200),

@@ -12,11 +12,6 @@ export const brand = {
   email: "",
   /** Domínio da loja (ex.: "https://armazemdoschinelos.com.br"), sem barra no final. */
   siteUrl: "",
-  whatsapp: {
-    /** Número em E.164 (DDI + DDD + número), sem símbolos. Vazio esconde o botão. */
-    phoneE164: "",
-    display: "",
-  },
   social: {
     instagram: "",
     tiktok: "",

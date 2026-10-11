@@ -6,8 +6,9 @@ import { Loader2 } from "lucide-react";
 import { BrandLogo } from "@/components/site/BrandLogo";
 import { createPixCharge } from "@/lib/pix.functions";
 import { brand } from "@/lib/brand";
-import { useCart } from "@/lib/cart";
-import { fretesFor, isFreeShippingEligible, type FreteId } from "@/lib/store-settings";
+import { useCart, type CartLine } from "@/lib/cart";
+import { activeBumps, bumpPrice } from "@/lib/order-bumps";
+import { fretes as fretesDisponiveis, type FreteId } from "@/lib/store-settings";
 import { savePixSession } from "@/lib/pix-session";
 import { getSessionId, getStoredUtms } from "@/lib/tracking";
 import { trackCheckoutStep, type CheckoutStep } from "@/lib/checkout-tracking.functions";
@@ -24,7 +25,7 @@ import {
   PixIcon,
 } from "@/components/checkout/parts";
 import { SummaryDesktop, SummaryMobile } from "@/components/checkout/Summary";
-import { FreeShippingProgress } from "@/components/checkout/FreeShippingProgress";
+import { OrderBumps, type BumpPicks } from "@/components/checkout/OrderBumps";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -86,7 +87,10 @@ function Page() {
   const navigate = useNavigate();
   const cart = useCart();
   const { lines, subtotal } = cart;
-  const cartName = lines.map((l) => `${l.qtd}x ${l.product.nome}`).join(" + ").slice(0, 80);
+  const cartName = lines
+    .map((l) => `${l.qtd}x ${l.product.nome}`)
+    .join(" + ")
+    .slice(0, 80);
   const tracked = useRef(false);
   useEffect(() => {
     if (tracked.current || !lines.length) return;
@@ -131,24 +135,38 @@ function Page() {
     }
   }, [id, addr, step]);
 
-  // Frete grátis só a partir do mínimo do /admin em produtos (validado também no servidor).
-  const freeEligible = isFreeShippingEligible(subtotal);
-  const fretes = fretesFor(subtotal);
-  const [frete, setFrete] = useState<FreteId>("padrao");
-  const wasEligible = useRef(freeEligible);
-  useEffect(() => {
-    if (!freeEligible && frete === "gratis") setFrete("padrao");
-    // Acabou de liberar o frete grátis: já seleciona para o cliente.
-    if (freeEligible && !wasEligible.current) setFrete("gratis");
-    wasEligible.current = freeEligible;
-  }, [freeEligible, frete]);
+  // Frete grátis em todo pedido; Express é opcional e pago.
+  const fretes = fretesDisponiveis();
+  const [frete, setFrete] = useState<FreteId>("gratis");
   const createFn = useServerFn(createPixCharge);
   const stepFn = useServerFn(trackCheckoutStep);
+
+  // Order bumps marcados na etapa de pagamento (1 unidade, preço da oferta).
+  const [bumpPicks, setBumpPicks] = useState<BumpPicks>({});
+  const inCart = new Set(lines.map((l) => l.id));
+  const bumpLines: CartLine[] = activeBumps().flatMap((b) => {
+    const pick = bumpPicks[b.productId];
+    if (!pick?.on || !pick.tamanho || inCart.has(b.productId)) return [];
+    const { price } = bumpPrice(b.product, b);
+    return [
+      {
+        id: b.productId,
+        tamanho: pick.tamanho,
+        qtd: 1,
+        product: b.product,
+        unit: price,
+        total: price,
+      },
+    ];
+  });
+  const bumpMissingSize = Object.values(bumpPicks).some((b) => b.on && !b.tamanho);
+  const orderLines = [...lines, ...bumpLines];
+  const orderSubtotal = Math.round(orderLines.reduce((s, l) => s + l.total, 0) * 100) / 100;
 
   const freteOpt = fretes.find((f) => f.id === frete) ?? fretes[0]!;
   const freteValue = freteOpt.price;
   // Só Pix (SagacePay ou MagicPay): o servidor recalcula tudo com a mesma regra antes de cobrar.
-  const pixTotal = Math.round((subtotal + freteValue) * 100) / 100;
+  const pixTotal = Math.round((orderSubtotal + freteValue) * 100) / 100;
   const payTotal = pixTotal;
 
   // Busca de endereço pelo CEP (ViaCEP, API pública)
@@ -189,8 +207,8 @@ function Page() {
               name: id.name,
               email: id.email,
               phone: id.phone,
-              bump: false,
-              bumps: lines.map((l) => `${l.qtd}x ${l.product.nome} (${l.tamanho})`).slice(0, 5),
+              bump: bumpLines.length > 0,
+              bumps: bumpLines.map((l) => `${l.product.nome} (${l.tamanho})`).slice(0, 5),
               frete,
             }
           : {}),
@@ -231,7 +249,10 @@ function Page() {
   });
   const orderPayload = () => ({
     ...id,
-    items: cart.items,
+    items: [
+      ...cart.items,
+      ...bumpLines.map((l) => ({ id: l.id, tamanho: l.tamanho, qtd: 1, bump: true })),
+    ],
     frete,
     origin: window.location.origin,
     utm: getStoredUtms(),
@@ -241,7 +262,7 @@ function Page() {
   const sessionBase = () => ({
     email: id.email,
     name: id.name,
-    items: lines.map((l) => ({
+    items: orderLines.map((l) => ({
       id: l.id,
       nome: l.product.nome,
       marca: l.product.marca,
@@ -251,7 +272,7 @@ function Page() {
       total: l.total,
       imagem: l.product.imagens[0] ?? null,
     })),
-    subtotal,
+    subtotal: orderSubtotal,
     frete: freteValue,
     createdAt: Date.now(),
     phone: id.phone.replace(/\D/g, ""),
@@ -339,7 +360,7 @@ function Page() {
             onChange={(e) => setId({ ...id, cpf: maskCpf(e.target.value) })}
           />
           <Field
-            label="Celular/Whatsapp"
+            label="Celular"
             wrap="sm:max-w-[240px]"
             prefix="+55"
             inputMode="tel"
@@ -394,7 +415,9 @@ function Page() {
               maxLength={2}
               value={addr.uf}
               ok={addr.uf.trim().length === 2}
-              onChange={(e) => setAddr({ ...addr, uf: e.target.value.replace(/[^a-z]/gi, "").toUpperCase() })}
+              onChange={(e) =>
+                setAddr({ ...addr, uf: e.target.value.replace(/[^a-z]/gi, "").toUpperCase() })
+              }
             />
           </div>
           <Field
@@ -432,30 +455,27 @@ function Page() {
             onChange={(e) => setAddr({ ...addr, complemento: e.target.value })}
           />
           <p className="pt-2 text-base font-medium">Escolha o frete:</p>
-          <FreeShippingProgress subtotal={subtotal} />
-          {fretes.map(
-            ({ id: v, name: t, eta: d, price }) => {
-              const p = price ? brl(price) : "Grátis";
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setFrete(v)}
-                  className={cn(
-                    "flex w-full items-center gap-4 rounded-lg border px-4 py-5 text-left",
-                    frete === v ? "border-[var(--ck-blue)] bg-muted/60" : "border-border",
-                  )}
-                >
-                  <Radio on={frete === v} />
-                  <span className="flex-1">
-                    <span className="block text-[13px] font-medium">{t}</span>
-                    <span className="text-[11px] text-muted-foreground">{d}</span>
-                  </span>
-                  <span className="text-[13px] font-semibold">{p}</span>
-                </button>
-              );
-            },
-          )}
+          {fretes.map(({ id: v, name: t, eta: d, price }) => {
+            const p = price ? brl(price) : "Grátis";
+            return (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setFrete(v)}
+                className={cn(
+                  "flex w-full items-center gap-4 rounded-lg border px-4 py-5 text-left",
+                  frete === v ? "border-[var(--ck-blue)] bg-muted/60" : "border-border",
+                )}
+              >
+                <Radio on={frete === v} />
+                <span className="flex-1">
+                  <span className="block text-[13px] font-medium">{t}</span>
+                  <span className="text-[11px] text-muted-foreground">{d}</span>
+                </span>
+                <span className="text-[13px] font-semibold">{p}</span>
+              </button>
+            );
+          })}
           <GreenButton type="submit" disabled={!addrValid}>
             Ir Para Pagamento
           </GreenButton>
@@ -509,6 +529,7 @@ function Page() {
           sub="Todas as transações são seguras e criptografadas."
         />
         <div className="mt-6 space-y-6">
+          <OrderBumps picks={bumpPicks} onChange={setBumpPicks} hide={inCart} />
           <div className="rounded-lg border border-[var(--ck-blue)] bg-muted/60">
             <div className="flex w-full items-center gap-3 p-3 text-left">
               <Radio on />
@@ -536,7 +557,7 @@ function Page() {
               <GreenButton
                 type="button"
                 className="bg-[var(--ck-green)]"
-                disabled={mutation.isPending}
+                disabled={mutation.isPending || bumpMissingSize}
                 onClick={() => mutation.mutate()}
               >
                 {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Finalizar
@@ -579,14 +600,14 @@ function Page() {
           <BrandLogo className="text-3xl md:text-4xl" />
         </Link>
       </header>
-      <SummaryMobile lines={lines} subtotal={subtotal} frete={freteValue} />
+      <SummaryMobile lines={orderLines} subtotal={orderSubtotal} frete={freteValue} />
       <main className="mx-auto grid w-full max-w-[1160px] gap-4 px-3 pb-24 pt-2 md:px-4 lg:grid-cols-3 lg:gap-4">
         <div className="space-y-5">
           {idCard}
           {addrCard}
         </div>
         <div>{payCard}</div>
-        <SummaryDesktop lines={lines} subtotal={subtotal} frete={freteValue} />
+        <SummaryDesktop lines={orderLines} subtotal={orderSubtotal} frete={freteValue} />
       </main>
       <CheckoutFooter />
     </div>

@@ -3,7 +3,6 @@ import { ChevronDown } from "lucide-react";
 import type { CartLine } from "@/lib/cart";
 import { brl } from "@/lib/store-settings";
 import { ProductImage } from "@/components/store/ProductCard";
-import { FreeShippingProgress } from "./FreeShippingProgress";
 import { cn } from "@/lib/utils";
 
 type Props = { lines: CartLine[]; subtotal: number; frete: number };
@@ -57,7 +56,6 @@ export function SummaryDesktop({ lines, subtotal, frete }: Props) {
       <div className="sticky top-6 space-y-4 rounded-xl border bg-card p-5">
         <p className="text-base font-semibold">Resumo do pedido</p>
         <Lines lines={lines} />
-        <FreeShippingProgress subtotal={subtotal} />
         <Totals subtotal={subtotal} frete={frete} />
       </div>
     </aside>

@@ -12,7 +12,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { useTrackPageView } from "@/hooks/useTrackPageView";
 import { META_PIXEL_ID, TIKTOK_PIXEL_ID, UTMIFY_PIXEL_ID } from "@/lib/pixels";
 import { useMetaPixel } from "@/hooks/useMetaPixel";
-import { WhatsAppFloat } from "@/components/site/WhatsAppFloat";
 import { brand } from "@/lib/brand";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { getStoreConfig } from "@/lib/store-settings.functions";
@@ -193,7 +192,6 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <Outlet />
-        <WhatsAppFloat />
         <Toaster position="top-center" />
       </CartProvider>
     </QueryClientProvider>

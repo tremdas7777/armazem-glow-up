@@ -41,7 +41,7 @@ export const Route = createFileRoute("/politica-privacidade")({
       <h2>Seus direitos</h2>
       <p>
         Você pode solicitar acesso, correção ou exclusão de seus dados{" "}
-        {brand.email ? `pelo email ${brand.email}` : `pelo WhatsApp ${brand.whatsapp.display}`}.
+        {brand.email ? `pelo email ${brand.email}` : `pela página de contato`}.
       </p>
     </PolicyPage>
   ),

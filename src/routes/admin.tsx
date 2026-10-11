@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminFunnel, verifyAdminPassword } from "@/lib/admin.functions";
-import { getSiteSettings, setWhatsappEnabled } from "@/lib/site-settings.functions";
 import { UtmifyCard } from "@/components/admin/UtmifyCard";
 import { PixGatewayCard } from "@/components/admin/PixGatewayCard";
 import { StoreTab } from "@/components/admin/StoreTab";
@@ -24,7 +23,6 @@ import {
   Activity,
   Loader2,
   Users,
-  MessageCircle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -173,33 +171,6 @@ function AdminPage() {
     }
   };
 
-  // WhatsApp toggle
-  const fetchSettings = useServerFn(getSiteSettings);
-  const saveWhatsapp = useServerFn(setWhatsappEnabled);
-  const [whatsappEnabled, setWhatsappEnabledState] = useState<boolean | null>(null);
-  const [savingWa, setSavingWa] = useState(false);
-
-  useEffect(() => {
-    if (!authed) return;
-    fetchSettings()
-      .then((s) => {
-        setWhatsappEnabledState(s.whatsappEnabled);
-      })
-      .catch(() => {});
-  }, [authed, fetchSettings]);
-
-  const toggleWhatsapp = async () => {
-    if (whatsappEnabled === null) return;
-    setSavingWa(true);
-    try {
-      const next = !whatsappEnabled;
-      const r = await saveWhatsapp({ data: { password, enabled: next } });
-      setWhatsappEnabledState(r.enabled);
-    } finally {
-      setSavingWa(false);
-    }
-  };
-
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -280,30 +251,6 @@ function AdminPage() {
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
                 Configurações da loja
               </h2>
-              <Card className="p-5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <MessageCircle className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium">Botão de WhatsApp</div>
-                    <div className="text-xs text-muted-foreground">
-                      Quando desativado, o botão e o número somem do site.
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground">
-                    {whatsappEnabled === null ? "…" : whatsappEnabled ? "Ativo" : "Desativado"}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant={whatsappEnabled ? "destructive" : "default"}
-                    disabled={savingWa || whatsappEnabled === null}
-                    onClick={toggleWhatsapp}
-                  >
-                    {savingWa ? "Salvando…" : whatsappEnabled ? "Desativar" : "Ativar"}
-                  </Button>
-                </div>
-              </Card>
               <PixGatewayCard password={password} />
               <UtmifyCard password={password} />
               <PushcutCard password={password} />

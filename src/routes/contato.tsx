@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
 import type { FormEvent } from "react";
 import { SiteLayout } from "@/components/site/Layout";
 import { brand } from "@/lib/brand";
-import { getSiteSettings } from "@/lib/site-settings.functions";
 
 export const Route = createFileRoute("/contato")({
   head: () => ({
@@ -14,8 +11,7 @@ export const Route = createFileRoute("/contato")({
       { title: `Contato | ${brand.name}` },
       {
         name: "description",
-        content:
-          `Fale com a equipe ${brand.name}. Atendimento para pedidos, trocas e dúvidas.`,
+        content: `Fale com a equipe ${brand.name}. Atendimento para pedidos, trocas e dúvidas.`,
       },
       { property: "og:title", content: `Contato ${brand.name}` },
       { property: "og:description", content: `Fale com a equipe ${brand.name}.` },
@@ -27,30 +23,12 @@ export const Route = createFileRoute("/contato")({
 });
 
 function Page() {
-  const fetchSettings = useServerFn(getSiteSettings);
-  const { data: settings } = useQuery({
-    queryKey: ["site-settings"],
-    queryFn: () => fetchSettings(),
-    staleTime: 60_000,
-  });
-  const whatsappEnabled = settings?.whatsappEnabled ?? false;
-  const whatsappHref = `https://wa.me/${brand.whatsapp.phoneE164}?text=${encodeURIComponent(
-    "Olá! Quero tirar uma dúvida sobre um pedido.",
-  )}`;
-  // O formulário não tem servidor de e-mail: abre o WhatsApp (ou o e-mail) com a mensagem pronta.
-  const channel = whatsappEnabled ? "whatsapp" : brand.email ? "email" : null;
+  // O formulário não tem servidor de e-mail: abre o e-mail com a mensagem pronta.
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const text = `Olá! Sou ${f.get("nome")} (${f.get("email")}).\n\n${f.get("mensagem")}`;
-    if (channel === "whatsapp")
-      window.open(
-        `https://wa.me/${brand.whatsapp.phoneE164}?text=${encodeURIComponent(text)}`,
-        "_blank",
-        "noopener",
-      );
-    else if (channel === "email")
-      window.location.href = `mailto:${brand.email}?subject=${encodeURIComponent("Contato pelo site")}&body=${encodeURIComponent(text)}`;
+    window.location.href = `mailto:${brand.email}?subject=${encodeURIComponent("Contato pelo site")}&body=${encodeURIComponent(text)}`;
   };
   return (
     <SiteLayout>
@@ -74,37 +52,22 @@ function Page() {
                   </a>
                 </li>
               )}
-              {whatsappEnabled && (
-                <li className="border-b border-[rgba(13,13,13,0.08)] pb-5">
-                  <div className="eyebrow text-[var(--ink)]/40 mb-2">WhatsApp</div>
-                  <a
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-[var(--primary)] hover:underline"
-                    aria-label={`Chamar no WhatsApp ${brand.whatsapp.display}`}
-                  >
-                    +55 {brand.whatsapp.display}
-                  </a>
-                </li>
-              )}
             </ul>
           </div>
 
-          <form
-            className="lg:col-span-7 bg-white p-10 md:p-12 border border-[rgba(13,13,13,0.08)] rounded-xl space-y-8"
-            onSubmit={onSubmit}
-          >
-            <Field label="Nome" name="nome" />
-            <Field label="Email" name="email" type="email" />
-            <Field label="Mensagem" name="mensagem" textarea />
-            <button
-              disabled={!channel}
-              className="w-full bg-[var(--primary)] text-white py-5 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-colors disabled:opacity-50"
+          {brand.email && (
+            <form
+              className="lg:col-span-7 bg-white p-10 md:p-12 border border-[rgba(13,13,13,0.08)] rounded-xl space-y-8"
+              onSubmit={onSubmit}
             >
-              {channel === "email" ? "Enviar por email" : "Enviar pelo WhatsApp"}
-            </button>
-          </form>
+              <Field label="Nome" name="nome" />
+              <Field label="Email" name="email" type="email" />
+              <Field label="Mensagem" name="mensagem" textarea />
+              <button className="w-full bg-[var(--primary)] text-white py-5 text-xs font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-colors">
+                Enviar por email
+              </button>
+            </form>
+          )}
         </div>
       </section>
     </SiteLayout>

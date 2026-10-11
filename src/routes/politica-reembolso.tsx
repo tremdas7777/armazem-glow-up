@@ -2,12 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PolicyPage } from "@/components/site/PolicyPage";
 import { brand } from "@/lib/brand";
 
-const contato = () =>
-  brand.email
-    ? `pelo e-mail ${brand.email}`
-    : brand.whatsapp.display
-      ? `pelo WhatsApp ${brand.whatsapp.display}`
-      : "pela página de contato";
+const contato = () => (brand.email ? `pelo e-mail ${brand.email}` : "pela página de contato");
 
 export const Route = createFileRoute("/politica-reembolso")({
   head: () => ({

@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { brand } from "@/lib/brand";
 import { categoriesWithProducts, PRODUCTS } from "@/lib/catalog";
 import { MAX_QTY, useCart } from "@/lib/cart";
-import { brl, isFreeShippingEligible, priceOf, store } from "@/lib/store-settings";
+import { brl, priceOf, store } from "@/lib/store-settings";
 import { ProductImage } from "./ProductCard";
 
 const hasOffers = () => PRODUCTS.some((p) => priceOf(p).off > 0);
@@ -166,7 +166,6 @@ function Footer() {
             <ul>
               <li><Link to="/contato">Fale conosco</Link></li>
               {brand.email && <li><a href={`mailto:${brand.email}`}>{brand.email}</a></li>}
-              {brand.whatsapp.display && <li>WhatsApp {brand.whatsapp.display}</li>}
             </ul>
           </div>
         </div>
@@ -193,8 +192,6 @@ function CartDrawer() {
   const cart = useCart();
   const navigate = useNavigate();
   const close = () => cart.setOpen(false);
-  const meta = store.freeShippingMin;
-  const falta = Math.max(0, meta - cart.subtotal);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
@@ -261,25 +258,9 @@ function CartDrawer() {
         </div>
         {cart.lines.length > 0 && (
           <div className="drawer__foot">
-            {meta > 0 && (
-              <div className="ship-bar">
-                {isFreeShippingEligible(cart.subtotal) ? (
-                  <>
-                    <strong>Parabéns!</strong> Você ganhou frete grátis.
-                  </>
-                ) : (
-                  <>
-                    Faltam <strong>{brl(falta)}</strong> para o frete grátis
-                  </>
-                )}
-                <div className="ship-bar__track">
-                  <div
-                    className="ship-bar__fill"
-                    style={{ width: `${Math.min(100, (cart.subtotal / meta) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
+            <div className="ship-bar">
+              <strong>Frete grátis</strong> para todo o Brasil.
+            </div>
             <div className="totals">
               <span>Subtotal</span>
               <span>{brl(cart.subtotal)}</span>

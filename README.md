@@ -25,7 +25,7 @@ TanStack Start + Lovable Cloud (Supabase), hospedada no Lovable.
 3. **Gateways**: em `/admin` → Integrações, cadastre as chaves, use "Testar" e escolha o gateway.
    Cadastre o webhook `https://SEU-DOMINIO/api/public/pix-webhook` (MagicPay: `?gw=mp`) no painel
    do gateway, se ele pedir.
-4. **Dados da loja**: `src/lib/brand.ts` (e-mail, WhatsApp, domínio, redes sociais).
+4. **Dados da loja**: `src/lib/brand.ts` (e-mail, domínio, redes sociais).
 5. **Catálogo**: `src/lib/catalog-data.ts` (um produto por linha). Confira **tamanhos** e
    **estoque** com o fornecedor, preencha `custo` para o painel de lucro e use `"ativo": false`
    para tirar um produto da loja sem apagar.

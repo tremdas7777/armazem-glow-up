@@ -1,10 +1,17 @@
 // Cálculo do pedido a partir da sacola. Função pura: o servidor usa para cobrar e o checkout só para
 // exibir. Preço sempre do catálogo + configuração da loja, nunca o que o navegador mandou.
 import { getProduct, itemLabel } from "@/lib/catalog";
-import { fretesFor, priceOf, type Frete, type FreteId } from "@/lib/store-settings";
+import { fretes, priceOf, type Frete, type FreteId } from "@/lib/store-settings";
 import type { GatewayItem } from "@/lib/gateway-items";
+import { bumpPrice, getBump } from "@/lib/order-bumps";
 
-export type OrderItemInput = { id: string; tamanho: string; qtd: number };
+export type OrderItemInput = {
+  id: string;
+  tamanho: string;
+  qtd: number;
+  /** Item adicionado pelo order bump do checkout (preço da oferta, 1 unidade). */
+  bump?: boolean;
+};
 
 export type OrderLine = {
   id: string;
@@ -18,6 +25,7 @@ export type OrderLine = {
   /** Custo unitário em reais (quando cadastrado). */
   custo?: number;
   label: string;
+  bump?: boolean;
 };
 
 export type OrderQuote = {
@@ -39,10 +47,10 @@ const cents = (v: number) => Math.round(v * 100);
 
 export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): OrderQuote {
   if (!items.length) throw new OrderError("Sua sacola está vazia.");
-  // Junta linhas repetidas (mesmo produto e tamanho).
+  // Junta linhas repetidas (mesmo produto, tamanho e oferta).
   const merged = new Map<string, OrderItemInput>();
   for (const it of items) {
-    const k = `${it.id}|${it.tamanho}`;
+    const k = `${it.id}|${it.tamanho}|${it.bump ? "bump" : ""}`;
     const cur = merged.get(k);
     merged.set(k, cur ? { ...cur, qtd: cur.qtd + it.qtd } : { ...it });
   }
@@ -53,6 +61,9 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
       throw new OrderError(`O tamanho ${it.tamanho} de ${p.nome} não está disponível.`);
     if (!Number.isInteger(it.qtd) || it.qtd < 1 || it.qtd > 10)
       throw new OrderError("Quantidade inválida.");
+    const bump = it.bump ? getBump(p.id) : undefined;
+    if (it.bump && (!bump || it.qtd !== 1))
+      throw new OrderError("Esta oferta não está mais disponível.");
     return {
       id: p.id,
       ref: p.ref,
@@ -60,15 +71,15 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
       nome: p.nome,
       tamanho: it.tamanho,
       qtd: it.qtd,
-      unit: priceOf(p).price,
+      unit: bump ? bumpPrice(p, bump).price : priceOf(p).price,
       ...(p.custo != null ? { custo: p.custo } : {}),
       label: itemLabel(p, it.tamanho),
+      ...(bump ? { bump: true } : {}),
     };
   });
   const subtotalCents = lines.reduce((s, l) => s + cents(l.unit) * l.qtd, 0);
   const subtotal = subtotalCents / 100;
-  const options = fretesFor(subtotal);
-  const frete = options.find((f) => f.id === freteId);
+  const frete = fretes().find((f) => f.id === freteId);
   if (!frete) throw new OrderError("Opção de frete indisponível para este pedido.");
 
   const gatewayItems: GatewayItem[] = lines.map((l) => ({
