@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { SiteLayout } from "@/components/site/Layout";
 import { ProductArt, ProductCard } from "@/components/store/ProductCard";
 import { brand } from "@/lib/brand";
@@ -135,6 +136,10 @@ const PERKS = [
 ];
 
 function Index() {
+  const [autoPlayVideo, setAutoPlayVideo] = useState(false);
+  useEffect(() => {
+    setAutoPlayVideo(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
   const cats = categoriesWithProducts();
   const novos = newArrivals();
   const ofertas = PRODUCTS.filter((p) => priceOf(p).off > 0);
@@ -142,56 +147,29 @@ function Index() {
   const menor = Math.min(...PRODUCTS.map((p) => priceOf(p).price));
   const vendidos = PRODUCTS.filter((p) => p.maisVendido);
   const grandes = [...cats].sort((a, b) => count(b.slug) - count(a.slug)).slice(0, 2);
-  const picks = cats.slice(0, 3).map((c) => novos.find((p) => p.categoria === c.slug) ?? PRODUCTS.find((p) => p.categoria === c.slug)!);
-  const marcas = [...new Set(PRODUCTS.map((p) => p.marca))];
   const ofertaImage = PRODUCTS.find((p) => p.categoria === "tenis" && p.imagens[0]);
   const bolsaImage = PRODUCTS.find((p) => p.categoria === "bolsas" && p.imagens[0]);
 
   return (
     <SiteLayout>
-      <section className="hero2 sequins">
-        <div className="hero2__inner">
+      <section className="campaign-banner" aria-label="Campanha Moleca">
+        <div className="campaign-banner__media">
+          <iframe
+            src={`https://www.youtube.com/embed/iDNa9Vke-cY?autoplay=${autoPlayVideo ? "1" : "0"}&mute=1&loop=1&playlist=iDNa9Vke-cY&playsinline=1&rel=0`}
+            title="Moleca — vídeo da campanha oficial"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+        <div className="container campaign-banner__caption">
           <div>
-            <span className="hero__eyebrow">
-              {store.discountPct > 0 ? `${store.discountPct}% OFF em toda a loja` : "Nova coleção"}
-            </span>
-            <h1>
-              {store.discountPct > 0 ? (
-                <>
-                  tudo com <em>{store.discountPct}% off</em>
-                </>
-              ) : (
-                <>
-                  mais que um <em>sapato</em>
-                </>
-              )}
-            </h1>
-            <p><strong>Revendedor Autorizado Moleca</strong></p>
-            <p>Calçados de várias marcas, com cor, conforto e personalidade para cada passo.</p>
-            <div className="hero__ctas">
-              <Link to="/colecao" search={store.discountPct ? {} : { novo: "1" }} className="btn btn--yellow">
-                {store.discountPct ? "Aproveitar agora" : "Ver lançamentos"}
-              </Link>
-              <Link to="/colecao" className="btn btn--outline">
-                Toda a coleção
-              </Link>
-            </div>
-            <div className="hero2__stats">
-              <div><strong>{PRODUCTS.length}</strong>modelos</div>
-              <div><strong>{marcas.length}</strong>{marcas.length === 1 ? "marca" : "marcas"}</div>
-              <div><strong>{cats.length}</strong>categorias</div>
-            </div>
+            <h1>{brand.name}</h1>
+            <p><strong>Revendedor Autorizado Moleca</strong>{store.discountPct > 0 ? ` • ${store.discountPct}% OFF em toda a loja` : ""}</p>
           </div>
-          <div className="hero2__collage" aria-hidden="true">
-            {picks.map((p, i) => (
-              <Link key={p.id} to="/produto/$id" params={{ id: p.id }} className={`blob b${i + 1}`}>
-                {p.imagens[0] ? <img src={p.imagens[0]} alt="" /> : <ProductArt cor={p.cor} />}
-              </Link>
-            ))}
-            <div className="price-tag">
-              a partir de<strong>{brl(menor)}</strong>
-            </div>
-          </div>
+          <Button asChild className="btn btn--pink">
+            <Link to="/colecao">Ver coleção</Link>
+          </Button>
         </div>
       </section>
 
