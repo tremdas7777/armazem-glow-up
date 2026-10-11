@@ -6,6 +6,9 @@ import { brl, store } from "@/lib/store-settings";
 export const Route = createFileRoute("/politica-envio")({
   head: () => ({
     meta: [
+      { property: "og:description", content: "Como funciona o envio dos pedidos, prazos e rastreamento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: `Envio e Prazos | ${brand.name}` },
       { name: "description", content: "Como funciona o envio dos pedidos, prazos e rastreamento." },
       { property: "og:title", content: "Envio e Prazos" },

@@ -9,6 +9,8 @@ import { getSiteSettings } from "@/lib/site-settings.functions";
 export const Route = createFileRoute("/contato")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: `Contato | ${brand.name}` },
       {
         name: "description",

@@ -12,6 +12,9 @@ const contato = () =>
 export const Route = createFileRoute("/politica-reembolso")({
   head: () => ({
     meta: [
+      { property: "og:description", content: `Como trocar ou devolver um produto comprado na ${brand.name },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: `Trocas e Devoluções | ${brand.name}` },
       { name: "description", content: `Como trocar ou devolver um produto comprado na ${brand.name}.` },
       { property: "og:title", content: "Trocas e Devoluções" },

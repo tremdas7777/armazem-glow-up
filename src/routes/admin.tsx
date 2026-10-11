@@ -29,7 +29,11 @@ import {
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
-    meta: [{ title: `Admin · ${brand.name}` }, { name: "robots", content: "noindex,nofollow" }],
+    meta: [
+      { name: "description", content: `Administração da ${brand.name}.` },
+      { property: "og:description", content: `Administração da ${brand.name}.` },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: `Admin · ${brand.name}` }, { name: "robots", content: "noindex,nofollow" }],
   }),
   component: AdminPage,
 });

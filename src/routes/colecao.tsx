@@ -23,6 +23,9 @@ export const Route = createFileRoute("/colecao")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
+      { property: "og:description", content: `Todos os calçados da ${brand.name },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: `Coleção | ${brand.name}` },
       { name: "description", content: `Todos os calçados da ${brand.name}: filtre por categoria, marca, tamanho e preço.` },
     ],

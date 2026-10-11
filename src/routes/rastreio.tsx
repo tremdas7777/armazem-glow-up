@@ -9,6 +9,8 @@ import { brand } from "@/lib/brand";
 export const Route = createFileRoute("/rastreio")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: `Rastrear Pedido | ${brand.name}` },
       {
         name: "description",

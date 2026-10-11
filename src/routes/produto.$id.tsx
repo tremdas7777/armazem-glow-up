@@ -24,7 +24,10 @@ export const Route = createFileRoute("/produto/$id")({
         { title },
         { name: "description", content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}` },
         { property: "og:title", content: title },
-        ...(p.imagens[0] ? [{ property: "og:image", content: p.imagens[0] }] : []),
+        { property: "og:description", content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}` },
+        { property: "og:type", content: "product" },
+        { name: "twitter:card", content: "summary_large_image" },
+        ...(p.imagens[0] ? [{ property: "og:image", content: p.imagens[0] }, { name: "twitter:image", content: p.imagens[0] }] : []),
       ],
     };
   },

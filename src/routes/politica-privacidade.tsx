@@ -5,6 +5,8 @@ import { brand } from "@/lib/brand";
 export const Route = createFileRoute("/politica-privacidade")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: `Política de Privacidade | ${brand.name}` },
       { name: "description", content: `Como a ${brand.name} protege seus dados pessoais.` },
       { property: "og:title", content: "Política de Privacidade" },

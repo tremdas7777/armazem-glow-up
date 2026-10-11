@@ -8,7 +8,11 @@ import { Pill, Shell } from "@/components/checkout/OrderShell";
 
 export const Route = createFileRoute("/obrigado/$id")({
   head: () => ({
-    meta: [{ title: `Pedido confirmado | ${brand.name}` }, { name: "robots", content: "noindex" }],
+    meta: [
+      { name: "description", content: `Confirmação do pedido na ${brand.name}.` },
+      { property: "og:description", content: `Confirmação do pedido na ${brand.name}.` },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: `Pedido confirmado | ${brand.name}` }, { name: "robots", content: "noindex" }],
   }),
   component: Page,
 });
