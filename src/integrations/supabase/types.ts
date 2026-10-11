@@ -65,6 +65,60 @@ export type Database = {
         }
         Relationships: []
       }
+      pix_orders: {
+        Row: {
+          amount_cents: number
+          bundle_id: string
+          bundle_name: string
+          created_at: string
+          customer: Json
+          fbc: string | null
+          fbp: string | null
+          id: string
+          ip: string | null
+          paid_reported_at: string | null
+          status: string
+          ua: string | null
+          updated_at: string
+          url: string | null
+          utm: Json | null
+        }
+        Insert: {
+          amount_cents: number
+          bundle_id: string
+          bundle_name: string
+          created_at?: string
+          customer: Json
+          fbc?: string | null
+          fbp?: string | null
+          id: string
+          ip?: string | null
+          paid_reported_at?: string | null
+          status?: string
+          ua?: string | null
+          updated_at?: string
+          url?: string | null
+          utm?: Json | null
+        }
+        Update: {
+          amount_cents?: number
+          bundle_id?: string
+          bundle_name?: string
+          created_at?: string
+          customer?: Json
+          fbc?: string | null
+          fbp?: string | null
+          id?: string
+          ip?: string | null
+          paid_reported_at?: string | null
+          status?: string
+          ua?: string | null
+          updated_at?: string
+          url?: string | null
+          utm?: Json | null
+        }
+        Relationships: []
+      }
       private_settings: {
         Row: {
           created_at: string
