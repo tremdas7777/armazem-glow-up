@@ -40,8 +40,11 @@ describe("pedido da sacola", () => {
     expect(q.gatewayItems.at(-1)).toMatchObject({ title: "Frete Express", tangible: false });
   });
 
-  it("frete grátis a partir do valor mínimo; abaixo dele cobra o Frete Padrão", () => {
-    applyStore({ ...DEFAULT_STORE, discountPct: 0 });
+  it("com valor mínimo no painel, frete grátis a partir dele; abaixo cobra o Frete Padrão", () => {
+    applyStore({
+      discountPct: 0,
+      shipping: { ...DEFAULT_STORE.shipping, padrao: { ...DEFAULT_STORE.shipping.padrao, freeFrom: 100 } },
+    });
     const barato = PRODUCTS.find((p) => p.preco < 100 && p.tamanhos.includes("37"))!;
     const caro = PRODUCTS.find((p) => p.preco >= 100 && p.tamanhos.includes("37"))!;
 
@@ -62,18 +65,18 @@ describe("pedido da sacola", () => {
     expect(quoteOrder([{ id: barato.id, tamanho: "37", qtd }], "gratis").frete.price).toBe(0);
   });
 
-  it("configuração salva antes do frete mínimo continua válida, com R$ 100 e R$ 14,90", () => {
+  it("configuração salva antes do frete mínimo continua válida, com frete grátis para todos", () => {
     applyStore({
       discountPct: 30,
       shipping: { padrao: { eta: "5 a 8 dias úteis" }, express: { price: 34.9, eta: "2 a 4 dias úteis" } },
     });
     expect(store.discountPct).toBe(30);
-    expect(store.shipping.padrao).toMatchObject({ price: 14.9, freeFrom: 100 });
+    expect(store.shipping.padrao).toMatchObject({ price: 14.9, freeFrom: 0 });
   });
 
-  it("frete mínimo 0 deixa o frete grátis em todo pedido", () => {
-    applyStore({ ...DEFAULT_STORE, shipping: { ...DEFAULT_STORE.shipping, padrao: { ...DEFAULT_STORE.shipping.padrao, freeFrom: 0 } } });
-    const barato = PRODUCTS.find((p) => p.tamanhos.includes("37"))!;
+  it("por padrão (frete mínimo 0) o frete é grátis em todo pedido", () => {
+    applyStore(DEFAULT_STORE);
+    const barato = PRODUCTS.find((p) => p.preco < 30 && p.tamanhos.includes("37")) ?? sandalia;
     expect(quoteOrder([{ id: barato.id, tamanho: "37", qtd: 1 }], "gratis").frete.price).toBe(0);
   });
 

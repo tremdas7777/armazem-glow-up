@@ -20,7 +20,7 @@ export const storeConfigSchema = z.object({
       eta: z.string().trim().min(1).max(60),
       price: money.default(14.9),
       /** 0 = frete grátis em qualquer pedido. */
-      freeFrom: money.default(100),
+      freeFrom: money.default(0),
     }),
     express: z.object({ price: money, eta: z.string().trim().min(1).max(60) }),
   }),
@@ -31,7 +31,7 @@ export type StoreConfig = z.infer<typeof storeConfigSchema>;
 export const DEFAULT_STORE: StoreConfig = {
   discountPct: 50,
   shipping: {
-    padrao: { eta: "5 a 8 dias úteis", price: 14.9, freeFrom: 100 },
+    padrao: { eta: "5 a 8 dias úteis", price: 14.9, freeFrom: 0 },
     express: { price: 34.9, eta: "2 a 4 dias úteis" },
   },
 };
