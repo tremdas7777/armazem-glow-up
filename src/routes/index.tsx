@@ -167,7 +167,11 @@ function Index() {
         <div className="container campaign-banner__caption">
           <div>
             <h1>{brand.name}</h1>
-            <p><strong>Revendedor Autorizado Moleca</strong>{store.discountPct > 0 ? ` • ${store.discountPct}% OFF em toda a loja` : ""}</p>
+            {store.discountPct > 0 && (
+              <p>
+                <strong>{store.discountPct}% OFF em toda a loja</strong>
+              </p>
+            )}
           </div>
           <Button asChild className="btn btn--pink">
             <Link to="/colecao">Ver coleção</Link>

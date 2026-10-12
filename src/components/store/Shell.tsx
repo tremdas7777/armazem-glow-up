@@ -51,7 +51,7 @@ function Header() {
   return (
     <>
       <div className="topbar">
-        Calçados e bolsas para o seu dia a dia • Revendedor Autorizado Moleca
+        Calçados e bolsas para o seu dia a dia
       </div>
       <header className="header">
         <div className="header__inner">
