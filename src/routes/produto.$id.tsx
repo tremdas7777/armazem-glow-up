@@ -63,12 +63,38 @@ function ProductPage() {
   const [qty, setQty] = useState(1);
   const [img, setImg] = useState(0);
   const { price } = priceOf(p);
+  // Papete em promoção por quantidade: cada par tem a própria cor e o próprio tamanho.
+  const promo = isQtyPromo(p.id) && !!p.cores?.length;
+  type Pair = { color: string; size: string | null };
+  const firstColor = p.cores?.[0]?.nome ?? "";
+  const [pairs, setPairs] = useState<Pair[]>([{ color: firstColor, size: null }]);
+  const [activePair, setActivePair] = useState(0);
+  const [pairError, setPairError] = useState<number | null>(null);
+  const setPair = (i: number, patch: Partial<Pair>) => {
+    setPairs((cur) => cur.map((x, k) => (k === i ? { ...x, ...patch } : x)));
+    setActivePair(i);
+    if (patch.size) setPairError(null);
+  };
+  const choosePairs = (n: number) => {
+    setQty(n);
+    setPairError(null);
+    setPairs((cur) =>
+      Array.from(
+        { length: n },
+        (_, k) => cur[k] ?? { color: cur.at(-1)?.color ?? firstColor, size: null },
+      ),
+    );
+    setActivePair((a) => Math.min(a, n - 1));
+  };
 
   useEffect(() => {
     setSize(p.tamanhos.length === 1 ? (p.tamanhos[0] ?? null) : null);
     setColor(p.cores?.[0]?.nome ?? "");
     setQty(1);
     setImg(0);
+    setPairs([{ color: p.cores?.[0]?.nome ?? "", size: null }]);
+    setActivePair(0);
+    setPairError(null);
     metaTrack("ViewContent", { value: price, contentName: p.nome });
     tiktokTrack("ViewContent", { value: price, contentId: p.id, contentName: p.nome });
   }, [p.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -79,11 +105,20 @@ function ProductPage() {
   ].slice(0, 4);
 
   const add = (goCheckout: boolean) => {
-    if (!size) {
-      setSizeError(true);
-      return;
+    if (promo) {
+      const missing = pairs.findIndex((x) => !x.size);
+      if (missing >= 0) {
+        setPairError(missing);
+        return;
+      }
+      for (const x of pairs) cart.add(p.id, `${x.size} · ${x.color}`, 1);
+    } else {
+      if (!size) {
+        setSizeError(true);
+        return;
+      }
+      cart.add(p.id, p.cores?.length ? `${size} · ${color}` : size, qty);
     }
-    cart.add(p.id, p.cores?.length ? `${size} · ${color}` : size, qty);
     const value = isQtyPromo(p.id) ? promoTotalCents(qty) / 100 : price * qty;
     metaTrack("AddToCart", { value, contentName: p.nome });
     tiktokTrack("AddToCart", { value, contentId: p.id, contentName: p.nome });
@@ -120,7 +155,10 @@ function ProductPage() {
                     onClick={() => {
                       setImg(i);
                       const option = p.cores?.find((c) => c.imagem === i);
-                      if (option) setColor(option.nome);
+                      if (option) {
+                        setColor(option.nome);
+                        if (promo) setPair(activePair, { color: option.nome });
+                      }
                     }}
                   >
                     <img src={src} alt="" loading="lazy" decoding="async" />
@@ -138,7 +176,7 @@ function ProductPage() {
             {isQtyPromo(p.id) && (
               <div className="qty-promo" aria-label="Leve mais, pague menos">
                 <div className="opt-label">
-                  Leve mais, pague menos <span>pode misturar cores e tamanhos</span>
+                  Leve mais, pague menos <span>escolha cor e tamanho de cada par</span>
                 </div>
                 <div className="qty-promo__tiers">
                   {QTY_PROMO.tiersCents.map((cents, i) => {
@@ -149,7 +187,7 @@ function ProductPage() {
                         type="button"
                         className={`qty-promo__tier ${qty === n ? "active" : ""}`}
                         aria-pressed={qty === n}
-                        onClick={() => setQty(n)}
+                        onClick={() => choosePairs(n)}
                       >
                         <strong>
                           {n} {n === 1 ? "par" : "pares"}
@@ -165,12 +203,70 @@ function ProductPage() {
               </div>
             )}
 
-            {p.cor && (
+            {promo &&
+              pairs.map((pair, i) => (
+                <div
+                  key={i}
+                  className={`pair ${pairs.length > 1 ? "pair--multi" : ""} ${pairError === i ? "pair--error" : ""}`}
+                  onFocusCapture={() => setActivePair(i)}
+                >
+                  {pairs.length > 1 && <div className="pair__title">Par {i + 1}</div>}
+                  <div className="opt-label">
+                    Cor <span>{pair.color}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2" aria-label={`Cores do par ${i + 1}`}>
+                    {p.cores!.map((c) => (
+                      <Button
+                        variant="outline"
+                        key={c.nome}
+                        title={c.nome}
+                        aria-label={`Par ${i + 1}: cor ${c.nome}`}
+                        aria-pressed={pair.color === c.nome}
+                        className={`thumb p-1 ${pairs.length > 1 ? "h-12 w-12" : "h-16 w-16"} ${pair.color === c.nome ? "active" : ""}`}
+                        onClick={() => {
+                          setPair(i, { color: c.nome });
+                          setImg(c.imagem);
+                        }}
+                      >
+                        <img
+                          className="h-full w-full object-contain"
+                          src={p.imagens[c.imagem]}
+                          alt={c.nome}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="opt-label">
+                    Tamanho <span>{pair.size ? `Selecionado: ${pair.size}` : "Selecione"}</span>
+                  </div>
+                  <div className="sizes">
+                    {sizes.map((t) => (
+                      <button
+                        key={t}
+                        className={`size ${pair.size === t ? "active" : ""}`}
+                        aria-label={`Par ${i + 1}: tamanho ${t}`}
+                        onClick={() => setPair(i, { size: t })}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={`size-error ${pairError === i ? "show" : ""}`}>
+                    {pairs.length > 1
+                      ? `Escolha o tamanho do par ${i + 1} para continuar.`
+                      : "Escolha um tamanho para continuar."}
+                  </div>
+                </div>
+              ))}
+
+            {!promo && p.cor && (
               <div className="opt-label">
                 Cor <span>{p.cor}</span>
               </div>
             )}
-            {p.cores && (
+            {!promo && p.cores && (
               <>
                 <div className="opt-label">
                   Cor <span>{color}</span>
@@ -201,41 +297,45 @@ function ProductPage() {
                 </div>
               </>
             )}
-            <div className="opt-label">
-              Tamanho <span>{size ? `Selecionado: ${size}` : "Selecione"}</span>
-            </div>
-            <div className="sizes">
-              {sizes.map((t) => (
-                <button
-                  key={t}
-                  className={`size ${size === t ? "active" : ""}`}
-                  onClick={() => {
-                    setSize(t);
-                    setSizeError(false);
-                  }}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-            <div className={`size-error ${sizeError ? "show" : ""}`}>
-              Escolha um tamanho para continuar.
-            </div>
+            {!promo && (
+              <>
+                <div className="opt-label">
+                  Tamanho <span>{size ? `Selecionado: ${size}` : "Selecione"}</span>
+                </div>
+                <div className="sizes">
+                  {sizes.map((t) => (
+                    <button
+                      key={t}
+                      className={`size ${size === t ? "active" : ""}`}
+                      onClick={() => {
+                        setSize(t);
+                        setSizeError(false);
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <div className={`size-error ${sizeError ? "show" : ""}`}>
+                  Escolha um tamanho para continuar.
+                </div>
 
-            <div className="opt-label">Quantidade</div>
-            <div className="qty">
-              <button aria-label="Diminuir" onClick={() => setQty((q) => Math.max(1, q - 1))}>
-                −
-              </button>
-              <span>{qty}</span>
-              <button
-                aria-label="Aumentar"
-                disabled={qty >= MAX_QTY}
-                onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}
-              >
-                +
-              </button>
-            </div>
+                <div className="opt-label">Quantidade</div>
+                <div className="qty">
+                  <button aria-label="Diminuir" onClick={() => setQty((q) => Math.max(1, q - 1))}>
+                    −
+                  </button>
+                  <span>{qty}</span>
+                  <button
+                    aria-label="Aumentar"
+                    disabled={qty >= MAX_QTY}
+                    onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}
+                  >
+                    +
+                  </button>
+                </div>
+              </>
+            )}
 
             <div className="pdp__buy">
               <button className="btn btn--pink btn--block" onClick={() => add(false)}>

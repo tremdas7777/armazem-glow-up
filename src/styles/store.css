@@ -334,6 +334,10 @@ html { scroll-behavior: smooth; }
 .store .qty-promo__tier small { font-size: 11px; color: var(--muted); }
 .store .qty-promo__tier:hover { border-color: var(--pink); }
 .store .qty-promo__tier.active { border-color: var(--pink); background: var(--pink-soft); }
+.store .pair--multi { border: 1.5px solid var(--line); border-radius: var(--radius); padding: 4px 14px 14px; margin-top: 12px; }
+.store .pair--multi .opt-label { margin: 14px 0 8px; }
+.store .pair__title { font-weight: 800; color: var(--pink); margin-top: 10px; font-size: 14px; }
+.store .pair--error { border-color: var(--pink-dark); }
 .store .pdp__perks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 10px; font-size: 13px; color: var(--muted); }
 .store .pdp__perks li { display: flex; gap: 10px; align-items: center; }
 .store .pdp__perks svg { width: 20px; height: 20px; flex: none; stroke: var(--pink); fill: none; stroke-width: 2; }
