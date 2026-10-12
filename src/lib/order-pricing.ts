@@ -3,7 +3,7 @@
 import { getProduct, itemLabel } from "@/lib/catalog";
 import { fretes, priceOf, type Frete, type FreteId } from "@/lib/store-settings";
 import type { GatewayItem } from "@/lib/gateway-items";
-import { bumpPrice, getBump } from "@/lib/order-bumps";
+import { bumpKey, bumpPrice, getBump } from "@/lib/order-bumps";
 
 export type OrderItemInput = {
   id: string;
@@ -54,6 +54,8 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
     const cur = merged.get(k);
     merged.set(k, cur ? { ...cur, qtd: cur.qtd + it.qtd } : { ...it });
   }
+  // Cada oferta vale 1 unidade por pedido, mesmo quando ela tem vários modelos para escolher.
+  const usedBumps = new Set<string>();
   const lines: OrderLine[] = [...merged.values()].map((it) => {
     const p = getProduct(it.id);
     if (!p) throw new OrderError("Um produto da sacola não está mais disponível.");
@@ -62,8 +64,9 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
     if (!Number.isInteger(it.qtd) || it.qtd < 1 || it.qtd > 10)
       throw new OrderError("Quantidade inválida.");
     const bump = it.bump ? getBump(p.id) : undefined;
-    if (it.bump && (!bump || it.qtd !== 1))
+    if (it.bump && (!bump || it.qtd !== 1 || usedBumps.has(bumpKey(bump))))
       throw new OrderError("Esta oferta não está mais disponível.");
+    if (bump) usedBumps.add(bumpKey(bump));
     return {
       id: p.id,
       ref: p.ref,

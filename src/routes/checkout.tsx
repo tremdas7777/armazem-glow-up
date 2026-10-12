@@ -8,7 +8,7 @@ import { createPixCharge } from "@/lib/pix.functions";
 import { brand } from "@/lib/brand";
 import { useCart, type CartLine } from "@/lib/cart";
 import { isValidCpf } from "@/lib/cpf";
-import { activeBumps, bumpPrice } from "@/lib/order-bumps";
+import { activeBumps, bumpPrice, pickedProduct } from "@/lib/order-bumps";
 import {
   fretes as fretesDisponiveis,
   missingForFreeShipping,
@@ -156,22 +156,29 @@ function Page() {
   // Order bumps marcados na etapa de pagamento (1 unidade, preço da oferta).
   const [bumpPicks, setBumpPicks] = useState<BumpPicks>({});
   const inCart = new Set(lines.map((l) => l.id));
-  const bumpLines: CartLine[] = activeBumps().flatMap((b) => {
-    const pick = bumpPicks[b.productId];
-    if (!pick?.on || !pick.tamanho || inCart.has(b.productId)) return [];
-    const { price } = bumpPrice(b.product, b);
+  // Ofertas visíveis e marcadas, já com o modelo escolhido (oferta com vários modelos = 1 deles).
+  const pickedBumps = activeBumps().flatMap((b) => {
+    const pick = bumpPicks[b.key];
+    const product = pickedProduct(b, pick, inCart);
+    return pick?.on && product ? [{ b, pick, product }] : [];
+  });
+  const bumpLines: CartLine[] = pickedBumps.flatMap(({ b, pick, product }) => {
+    if (!pick.tamanho || !product.tamanhos.includes(pick.tamanho)) return [];
+    const { price } = bumpPrice(product, b);
     return [
       {
-        id: b.productId,
+        id: product.id,
         tamanho: pick.tamanho,
         qtd: 1,
-        product: b.product,
+        product,
         unit: price,
         total: price,
       },
     ];
   });
-  const bumpMissingSize = Object.values(bumpPicks).some((b) => b.on && !b.tamanho);
+  const bumpMissingSize = pickedBumps.some(
+    ({ pick, product }) => !pick.tamanho || !product.tamanhos.includes(pick.tamanho),
+  );
   const orderLines = [...lines, ...bumpLines];
   // Quantidade e remoção no resumo, só para itens da sacola e antes de gerar o Pix.
   const cartIndex = (l: CartLine) =>

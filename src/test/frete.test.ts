@@ -122,7 +122,7 @@ describe("pedido da sacola", () => {
   it("order bump cobra o preço da oferta, 1 unidade, só para produtos configurados", () => {
     applyStore({ ...DEFAULT_STORE, discountPct: 50 });
     const bump = ORDER_BUMPS.find((b) => b.discountPct === 30)!;
-    const p = PRODUCTS.find((x) => x.id === bump.productId)!;
+    const p = PRODUCTS.find((x) => x.id === bump.productIds[0])!;
     const q = quoteOrder(
       [
         { id: sandalia.id, tamanho: "37", qtd: 1 },
@@ -136,9 +136,32 @@ describe("pedido da sacola", () => {
     expect(() =>
       quoteOrder([{ id: p.id, tamanho: p.tamanhos[0]!, qtd: 2, bump: true }], "gratis"),
     ).toThrow("oferta");
-    const fora = PRODUCTS.find((x) => !ORDER_BUMPS.some((b) => b.productId === x.id))!;
+    const fora = PRODUCTS.find((x) => !ORDER_BUMPS.some((b) => b.productIds.includes(x.id)))!;
     expect(() =>
       quoteOrder([{ id: fora.id, tamanho: fora.tamanhos[0]!, qtd: 1, bump: true }], "gratis"),
+    ).toThrow("oferta");
+  });
+
+  it("oferta de coturnos: escolhe 1 dos 4 modelos, com 50% a mais de desconto", () => {
+    applyStore({ ...DEFAULT_STORE, discountPct: 50 });
+    const bump = ORDER_BUMPS.find((b) => b.title === "Coturno Moleca")!;
+    expect(bump.productIds).toHaveLength(4);
+    expect(bump.discountPct).toBe(50);
+    for (const id of bump.productIds) {
+      const p = PRODUCTS.find((x) => x.id === id)!;
+      expect(p.categoria).toBe("botas");
+      const q = quoteOrder([{ id, tamanho: "37", qtd: 1, bump: true }], "gratis");
+      expect(q.lines[0]!.unit).toBe(Math.round(priceOf(p).price * 50) / 100);
+    }
+    // Só 1 coturno por pedido, mesmo escolhendo modelos diferentes.
+    expect(() =>
+      quoteOrder(
+        [
+          { id: bump.productIds[0]!, tamanho: "37", qtd: 1, bump: true },
+          { id: bump.productIds[1]!, tamanho: "37", qtd: 1, bump: true },
+        ],
+        "gratis",
+      ),
     ).toThrow("oferta");
   });
 });
