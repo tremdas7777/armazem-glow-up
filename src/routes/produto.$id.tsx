@@ -173,7 +173,9 @@ function ProductPage() {
             <ul className="pdp__perks">
               <li>
                 <svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" /></svg>
-                Frete grátis para todo o Brasil
+                {store.shipping.padrao.freeFrom > 0
+                  ? `Frete grátis acima de ${brl(store.shipping.padrao.freeFrom)}`
+                  : "Frete grátis para todo o Brasil"}
               </li>
               <li>
                 <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2" /></svg>

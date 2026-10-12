@@ -40,13 +40,41 @@ describe("pedido da sacola", () => {
     expect(q.gatewayItems.at(-1)).toMatchObject({ title: "Frete Express", tangible: false });
   });
 
-  it("frete grátis em qualquer pedido; o antigo Frete Padrão pago não existe mais", () => {
-    expect(() => quoteOrder([{ id: sandalia.id, tamanho: "37", qtd: 1 }], "padrao")).toThrow(
-      "frete",
-    );
-    const q = quoteOrder([{ id: sandalia.id, tamanho: "37", qtd: 1 }], "gratis");
-    expect(q.frete.price).toBe(0);
+  it("frete grátis a partir do valor mínimo; abaixo dele cobra o Frete Padrão", () => {
+    applyStore({ ...DEFAULT_STORE, discountPct: 0 });
+    const barato = PRODUCTS.find((p) => p.preco < 100 && p.tamanhos.includes("37"))!;
+    const caro = PRODUCTS.find((p) => p.preco >= 100 && p.tamanhos.includes("37"))!;
+
+    // Abaixo de R$ 100: "gratis" ou "padrao" viram o Frete Padrão pago, que vai ao gateway.
+    for (const id of ["gratis", "padrao"] as const) {
+      const q = quoteOrder([{ id: barato.id, tamanho: "37", qtd: 1 }], id);
+      expect(q.frete).toMatchObject({ id: "padrao", price: 14.9 });
+      expect(q.totalCents).toBe(Math.round(barato.preco * 100) + 1490);
+      expect(itemsTotalCents(q.gatewayItems)).toBe(q.totalCents);
+      expect(q.gatewayItems.at(-1)).toMatchObject({ title: "Frete Padrão", tangible: false });
+    }
+
+    // A partir de R$ 100 (inclusive a soma de itens baratos): grátis.
+    const q = quoteOrder([{ id: caro.id, tamanho: "37", qtd: 1 }], "padrao");
+    expect(q.frete).toMatchObject({ id: "gratis", price: 0 });
     expect(q.gatewayItems).toHaveLength(1);
+    const qtd = Math.ceil(100 / barato.preco);
+    expect(quoteOrder([{ id: barato.id, tamanho: "37", qtd }], "gratis").frete.price).toBe(0);
+  });
+
+  it("configuração salva antes do frete mínimo continua válida, com R$ 100 e R$ 14,90", () => {
+    applyStore({
+      discountPct: 30,
+      shipping: { padrao: { eta: "5 a 8 dias úteis" }, express: { price: 34.9, eta: "2 a 4 dias úteis" } },
+    });
+    expect(store.discountPct).toBe(30);
+    expect(store.shipping.padrao).toMatchObject({ price: 14.9, freeFrom: 100 });
+  });
+
+  it("frete mínimo 0 deixa o frete grátis em todo pedido", () => {
+    applyStore({ ...DEFAULT_STORE, shipping: { ...DEFAULT_STORE.shipping, padrao: { ...DEFAULT_STORE.shipping.padrao, freeFrom: 0 } } });
+    const barato = PRODUCTS.find((p) => p.tamanhos.includes("37"))!;
+    expect(quoteOrder([{ id: barato.id, tamanho: "37", qtd: 1 }], "gratis").frete.price).toBe(0);
   });
 
   it("recusa produto inexistente, tamanho fora da grade e sacola vazia", () => {

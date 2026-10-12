@@ -9,7 +9,7 @@ import { brand } from "@/lib/brand";
 import { useCart, type CartLine } from "@/lib/cart";
 import { isValidCpf } from "@/lib/cpf";
 import { activeBumps, bumpPrice } from "@/lib/order-bumps";
-import { fretes as fretesDisponiveis, type FreteId } from "@/lib/store-settings";
+import { fretes as fretesDisponiveis, missingForFreeShipping, type FreteId } from "@/lib/store-settings";
 import { savePixSession } from "@/lib/pix-session";
 import { getSessionId, getStoredUtms } from "@/lib/tracking";
 import { trackCheckoutStep, type CheckoutStep } from "@/lib/checkout-tracking.functions";
@@ -142,8 +142,7 @@ function Page() {
     }
   }, [restored, id, addr, step]);
 
-  // Frete grátis em todo pedido; Express é opcional e pago.
-  const fretes = fretesDisponiveis();
+  // Frete grátis a partir do valor mínimo (abaixo, Frete Padrão pago); Express é opcional e pago.
   const [frete, setFrete] = useState<FreteId>("gratis");
   const createFn = useServerFn(createPixCharge);
   const stepFn = useServerFn(trackCheckoutStep);
@@ -170,7 +169,9 @@ function Page() {
   const orderLines = [...lines, ...bumpLines];
   const orderSubtotal = Math.round(orderLines.reduce((s, l) => s + l.total, 0) * 100) / 100;
 
-  const freteOpt = fretes.find((f) => f.id === frete) ?? fretes[0]!;
+  const fretes = fretesDisponiveis(orderSubtotal);
+  const freteOpt = (frete === "express" && fretes.find((f) => f.id === "express")) || fretes[0]!;
+  const faltaFreteGratis = missingForFreeShipping(orderSubtotal);
   const freteValue = freteOpt.price;
   // Só Pix (SagacePay ou MagicPay): o servidor recalcula tudo com a mesma regra antes de cobrar.
   const pixTotal = Math.round((orderSubtotal + freteValue) * 100) / 100;
@@ -216,7 +217,7 @@ function Page() {
               phone: id.phone,
               bump: bumpLines.length > 0,
               bumps: bumpLines.map((l) => `${l.product.nome} (${l.tamanho})`).slice(0, 5),
-              frete,
+              frete: freteOpt.id,
             }
           : {}),
         ...(s === "entrega" || s === "pix" ? { cidade: addr.cidade, uf: addr.uf } : {}),
@@ -257,7 +258,7 @@ function Page() {
       ...cart.items,
       ...bumpLines.map((l) => ({ id: l.id, tamanho: l.tamanho, qtd: 1, bump: true })),
     ],
-    frete,
+    frete: freteOpt.id,
     origin: window.location.origin,
     utm: getStoredUtms(),
     endereco: `${addr.rua}, ${addr.numero} ${addr.complemento} - ${addr.bairro}, ${addr.cidade}/${addr.uf} ${addr.cep}`,
@@ -469,6 +470,11 @@ function Page() {
             onChange={(e) => setAddr({ ...addr, complemento: e.target.value })}
           />
           <p className="pt-2 text-base font-medium">Escolha o frete:</p>
+          {faltaFreteGratis > 0 && (
+            <p className="text-[12px] text-muted-foreground">
+              Faltam <strong>{brl(faltaFreteGratis)}</strong> para ganhar frete grátis.
+            </p>
+          )}
           {fretes.map(({ id: v, name: t, eta: d, price }) => {
             const p = price ? brl(price) : "Grátis";
             return (
@@ -478,10 +484,10 @@ function Page() {
                 onClick={() => setFrete(v)}
                 className={cn(
                   "flex w-full items-center gap-4 rounded-lg border px-4 py-5 text-left",
-                  frete === v ? "border-[var(--ck-blue)] bg-muted/60" : "border-border",
+                  freteOpt.id === v ? "border-[var(--ck-blue)] bg-muted/60" : "border-border",
                 )}
               >
-                <Radio on={frete === v} />
+                <Radio on={freteOpt.id === v} />
                 <span className="flex-1">
                   <span className="block text-[13px] font-medium">{t}</span>
                   <span className="text-[11px] text-muted-foreground">{d}</span>

@@ -26,7 +26,20 @@ export const Route = createFileRoute("/politica-envio")({
       <p>O pedido é separado assim que o Pix é confirmado e postado em até 2 dias úteis.</p>
       <h2>Opções de frete</h2>
       <ul>
-        <li>Frete Grátis, em todos os pedidos: {store.shipping.padrao.eta} após a postagem.</li>
+        {store.shipping.padrao.freeFrom > 0 ? (
+          <>
+            <li>
+              Frete Grátis, em pedidos a partir de {brl(store.shipping.padrao.freeFrom)}:{" "}
+              {store.shipping.padrao.eta} após a postagem.
+            </li>
+            <li>
+              Frete Padrão, em pedidos abaixo de {brl(store.shipping.padrao.freeFrom)}:{" "}
+              {brl(store.shipping.padrao.price)}, {store.shipping.padrao.eta} após a postagem.
+            </li>
+          </>
+        ) : (
+          <li>Frete Grátis, em todos os pedidos: {store.shipping.padrao.eta} após a postagem.</li>
+        )}
         <li>
           Frete Express: {brl(store.shipping.express.price)}, {store.shipping.express.eta} após a
           postagem.

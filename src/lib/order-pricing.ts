@@ -79,7 +79,9 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
   });
   const subtotalCents = lines.reduce((s, l) => s + cents(l.unit) * l.qtd, 0);
   const subtotal = subtotalCents / 100;
-  const frete = fretes().find((f) => f.id === freteId);
+  // "gratis" e "padrao" são a mesma opção: o valor do pedido decide se o frete sai de graça.
+  const options = fretes(subtotal);
+  const frete = freteId === "express" ? options.find((f) => f.id === "express") : options[0];
   if (!frete) throw new OrderError("Opção de frete indisponível para este pedido.");
 
   const gatewayItems: GatewayItem[] = lines.map((l) => ({

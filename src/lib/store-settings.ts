@@ -15,8 +15,13 @@ export const storeConfigSchema = z.object({
   /** Desconto aplicado em toda a loja (%). 0 = sem desconto. */
   discountPct: z.number().int().min(0).max(90),
   shipping: z.object({
-    /** Frete grátis, para todos os pedidos: só o prazo é configurável. */
-    padrao: z.object({ eta: z.string().trim().min(1).max(60) }),
+    /** Frete Padrão: grátis a partir de `freeFrom` (produtos, já com desconto); abaixo, custa `price`. */
+    padrao: z.object({
+      eta: z.string().trim().min(1).max(60),
+      price: money.default(14.9),
+      /** 0 = frete grátis em qualquer pedido. */
+      freeFrom: money.default(100),
+    }),
     express: z.object({ price: money, eta: z.string().trim().min(1).max(60) }),
   }),
 });
@@ -26,7 +31,7 @@ export type StoreConfig = z.infer<typeof storeConfigSchema>;
 export const DEFAULT_STORE: StoreConfig = {
   discountPct: 50,
   shipping: {
-    padrao: { eta: "5 a 8 dias úteis" },
+    padrao: { eta: "5 a 8 dias úteis", price: 14.9, freeFrom: 100 },
     express: { price: 34.9, eta: "2 a 4 dias úteis" },
   },
 };
@@ -54,10 +59,24 @@ export function priceOf(p: Produto): { price: number; compareAt: number | null; 
 export type FreteId = "gratis" | "padrao" | "express";
 export type Frete = { id: FreteId; name: string; eta: string; price: number };
 
-/** Opções de frete: grátis em todo pedido, ou Express pago para chegar mais rápido. */
-export function fretes(): Frete[] {
+/** Pedido (produtos, já com desconto) que ganha frete grátis. */
+export const hasFreeShipping = (subtotal: number) =>
+  Math.round(subtotal * 100) >= Math.round(store.shipping.padrao.freeFrom * 100);
+
+/** Quanto falta para o frete grátis (0 = já ganhou). */
+export const missingForFreeShipping = (subtotal: number) =>
+  Math.max(0, Math.round((store.shipping.padrao.freeFrom - subtotal) * 100) / 100);
+
+/**
+ * Opções de frete para o subtotal: Frete Grátis a partir do valor mínimo (abaixo, Frete Padrão
+ * pago), ou Express pago para chegar mais rápido. A primeira opção é sempre a padrão.
+ */
+export function fretes(subtotal: number): Frete[] {
+  const { eta, price } = store.shipping.padrao;
   return [
-    { id: "gratis", name: "Frete Grátis", eta: store.shipping.padrao.eta, price: 0 },
+    hasFreeShipping(subtotal)
+      ? { id: "gratis", name: "Frete Grátis", eta, price: 0 }
+      : { id: "padrao", name: "Frete Padrão", eta, price },
     { id: "express", name: "Frete Express", eta: store.shipping.express.eta, price: store.shipping.express.price },
   ];
 }

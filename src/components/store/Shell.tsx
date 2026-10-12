@@ -4,7 +4,7 @@ import { brand } from "@/lib/brand";
 import { BrandLogo } from "@/components/site/BrandLogo";
 import { categoriesWithProducts, PRODUCTS } from "@/lib/catalog";
 import { MAX_QTY, useCart } from "@/lib/cart";
-import { brl, priceOf, store } from "@/lib/store-settings";
+import { brl, missingForFreeShipping, priceOf, store } from "@/lib/store-settings";
 import { ProductImage } from "./ProductCard";
 
 const hasOffers = () => PRODUCTS.some((p) => priceOf(p).off > 0);
@@ -264,7 +264,26 @@ function CartDrawer() {
         {cart.lines.length > 0 && (
           <div className="drawer__foot">
             <div className="ship-bar">
-              <strong>Frete grátis</strong> para todo o Brasil.
+              {missingForFreeShipping(cart.subtotal) > 0 ? (
+                <>
+                  Faltam <strong>{brl(missingForFreeShipping(cart.subtotal))}</strong> para ganhar{" "}
+                  <strong>frete grátis</strong>.
+                </>
+              ) : (
+                <>
+                  Você ganhou <strong>frete grátis</strong> para todo o Brasil!
+                </>
+              )}
+              {store.shipping.padrao.freeFrom > 0 && (
+                <div className="ship-bar__track">
+                  <div
+                    className="ship-bar__fill"
+                    style={{
+                      width: `${Math.min(100, (cart.subtotal / store.shipping.padrao.freeFrom) * 100)}%`,
+                    }}
+                  />
+                </div>
+              )}
             </div>
             <div className="totals">
               <span>Subtotal</span>
