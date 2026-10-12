@@ -1,4 +1,4 @@
-import type { ReactNode, InputHTMLAttributes } from "react";
+import { useState, type ReactNode, type InputHTMLAttributes } from "react";
 import { Check, Lock, SquarePen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { brand } from "@/lib/brand";
@@ -84,9 +84,13 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   ok?: boolean;
   prefix?: string;
   wrap?: string;
+  /** Aviso mostrado quando o campo preenchido está inválido (depois que o cliente sai dele). */
+  error?: string;
 };
-export function Field({ label, ok, prefix, wrap, className, ...rest }: FieldProps) {
+export function Field({ label, ok, prefix, wrap, error, className, onBlur, ...rest }: FieldProps) {
   const filled = Boolean(rest.value);
+  const [touched, setTouched] = useState(false);
+  const showError = Boolean(error) && touched && filled && !ok;
   return (
     <label className={cn("block", wrap)}>
       <span className="mb-2 block text-[13px] font-medium">{label}</span>
@@ -94,15 +98,22 @@ export function Field({ label, ok, prefix, wrap, className, ...rest }: FieldProp
         {prefix && <span className="absolute left-3 text-sm text-muted-foreground">{prefix}</span>}
         <input
           {...rest}
+          aria-invalid={showError || undefined}
+          onBlur={(e) => {
+            setTouched(true);
+            onBlur?.(e);
+          }}
           className={cn(
             "h-[46px] w-full rounded-lg border px-3 text-base md:text-[13px] outline-none focus-visible:border-foreground focus-visible:ring-1 focus-visible:ring-foreground",
             filled ? "border-[var(--ck-blue)]/20 bg-[var(--ck-field)]" : "border-border ck-surface",
             prefix && "pl-12",
+            showError && "border-destructive",
             className,
           )}
         />
         {ok && <Check className="absolute right-3 h-4 w-4 text-[var(--ck-ok)]" />}
       </span>
+      {showError && <span className="mt-1 block text-[12px] text-destructive">{error}</span>}
     </label>
   );
 }

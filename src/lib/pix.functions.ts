@@ -14,21 +14,10 @@ import { createPix } from "@/lib/pix-gateway.server";
 import { syncStoreFromDb } from "@/lib/store-settings.server";
 import { isPaidStatus } from "@/lib/pix-status";
 import { OrderError, quoteOrder } from "@/lib/order-pricing";
+import { isValidCpf } from "@/lib/cpf";
 import { PROTECAO, PROTECAO_BUNDLE_ID } from "@/lib/order-protection";
 
 const utmSchema = z.record(z.string(), z.string().max(300).nullable()).optional().default({});
-
-function isValidCpf(raw: string): boolean {
-  const c = raw.replace(/\D/g, "");
-  if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
-  for (const t of [9, 10]) {
-    let sum = 0;
-    for (let i = 0; i < t; i++) sum += Number(c[i]) * (t + 1 - i);
-    const d = ((sum * 10) % 11) % 10;
-    if (d !== Number(c[t])) return false;
-  }
-  return true;
-}
 
 const itemSchema = z.object({
   id: z.string().min(1).max(64),

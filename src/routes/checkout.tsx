@@ -7,6 +7,7 @@ import { BrandLogo } from "@/components/site/BrandLogo";
 import { createPixCharge } from "@/lib/pix.functions";
 import { brand } from "@/lib/brand";
 import { useCart, type CartLine } from "@/lib/cart";
+import { isValidCpf } from "@/lib/cpf";
 import { activeBumps, bumpPrice } from "@/lib/order-bumps";
 import { fretes as fretesDisponiveis, type FreteId } from "@/lib/store-settings";
 import { savePixSession } from "@/lib/pix-session";
@@ -54,6 +55,8 @@ const maskCpf = (v: string) =>
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 const maskPhone = (v: string) =>
   digits(v)
+    // Preenchimento automático costuma vir com o DDI (+55): fica só DDD + número.
+    .replace(/^55(?=\d{10,11}$)/, "")
     .slice(0, 11)
     .replace(/^(\d{2})(\d)/, "($1) $2")
     .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
@@ -61,7 +64,9 @@ const maskCep = (v: string) =>
   digits(v)
     .slice(0, 8)
     .replace(/(\d{5})(\d)/, "$1-$2");
-const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+// O teclado do celular costuma deixar um espaço depois da sugestão de e-mail.
+const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+const nameOk = (v: string) => v.trim().split(/\s+/).length >= 2;
 type Step = 1 | 2 | 3;
 
 const DRAFT_KEY = "checkout_draft";
@@ -111,7 +116,9 @@ function Page() {
 
   // Rascunho do checkout nesta aba: se a página for recriada (troca de kit, recarregar),
   // o cliente não precisa digitar tudo de novo. Apagado quando o Pix é gerado.
-  const restored = useRef(false);
+  // `restored` é estado (não ref): só grava depois que os valores restaurados já estão na tela,
+  // senão a primeira gravação sobrescreve o rascunho com o formulário vazio.
+  const [restored, setRestored] = useState(false);
   useEffect(() => {
     try {
       const d = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? "null") as Draft | null;
@@ -123,17 +130,17 @@ function Page() {
     } catch {
       // storage indisponível ou rascunho inválido: segue com o formulário vazio
     }
-    restored.current = true;
+    setRestored(true);
   }, []);
   useEffect(() => {
-    if (!restored.current) return;
+    if (!restored) return;
     try {
       const d: Draft = { id, addr, step, at: Date.now() };
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d));
     } catch {
       // storage indisponível
     }
-  }, [id, addr, step]);
+  }, [restored, id, addr, step]);
 
   // Frete grátis em todo pedido; Express é opcional e pago.
   const fretes = fretesDisponiveis();
@@ -225,10 +232,7 @@ function Page() {
   }, [lines.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const idValid =
-    id.name.trim().split(" ").length >= 2 &&
-    emailOk(id.email) &&
-    digits(id.cpf).length === 11 &&
-    digits(id.phone).length >= 10;
+    nameOk(id.name) && emailOk(id.email) && isValidCpf(id.cpf) && digits(id.phone).length >= 10;
   const addrValid =
     digits(addr.cep).length === 8 &&
     addr.rua &&
@@ -338,7 +342,8 @@ function Page() {
             autoComplete="name"
             required
             value={id.name}
-            ok={id.name.trim().split(" ").length >= 2}
+            ok={nameOk(id.name)}
+            error="Digite nome e sobrenome."
             onChange={(e) => setId({ ...id, name: e.target.value })}
           />
           <Field
@@ -348,6 +353,7 @@ function Page() {
             required
             value={id.email}
             ok={emailOk(id.email)}
+            error="Confira o e-mail."
             onChange={(e) => setId({ ...id, email: e.target.value })}
           />
           <Field
@@ -356,7 +362,8 @@ function Page() {
             inputMode="numeric"
             required
             value={id.cpf}
-            ok={digits(id.cpf).length === 11}
+            ok={isValidCpf(id.cpf)}
+            error="CPF inválido. Confira os números."
             onChange={(e) => setId({ ...id, cpf: maskCpf(e.target.value) })}
           />
           <Field
@@ -364,9 +371,11 @@ function Page() {
             wrap="sm:max-w-[240px]"
             prefix="+55"
             inputMode="tel"
+            autoComplete="tel-national"
             required
             value={id.phone}
             ok={digits(id.phone).length >= 10}
+            error="Informe o celular com DDD."
             onChange={(e) => setId({ ...id, phone: maskPhone(e.target.value) })}
           />
           <GreenButton type="submit" disabled={!idValid}>
@@ -393,6 +402,7 @@ function Page() {
               label="CEP"
               wrap="w-2/3"
               inputMode="numeric"
+              autoComplete="postal-code"
               required
               value={addr.cep}
               ok={digits(addr.cep).length === 8}
@@ -403,6 +413,7 @@ function Page() {
             <Field
               label="Cidade"
               wrap="flex-1"
+              autoComplete="address-level2"
               required
               value={addr.cidade}
               ok={!!addr.cidade.trim()}
@@ -411,6 +422,7 @@ function Page() {
             <Field
               label="UF"
               wrap="w-1/4"
+              autoComplete="address-level1"
               required
               maxLength={2}
               value={addr.uf}
@@ -422,6 +434,7 @@ function Page() {
           </div>
           <Field
             label="Endereço"
+            autoComplete="address-line1"
             required
             value={addr.rua}
             ok={!!addr.rua}
@@ -451,6 +464,7 @@ function Page() {
                 Complemento <span className="text-[11px] text-muted-foreground">(Opcional)</span>
               </>
             }
+            autoComplete="address-line2"
             value={addr.complemento}
             onChange={(e) => setAddr({ ...addr, complemento: e.target.value })}
           />
