@@ -4,6 +4,8 @@ import { z } from "zod";
 import { brand } from "@/lib/brand";
 import {
   saveOrder,
+  getOrder,
+  findUpsellOf,
   fetchGatewayStatus,
   reportPaidOnce,
   reportPendingToUtmify,
@@ -12,6 +14,7 @@ import { createPix } from "@/lib/pix-gateway.server";
 import { syncStoreFromDb } from "@/lib/store-settings.server";
 import { isPaidStatus } from "@/lib/pix-status";
 import { OrderError, quoteOrder } from "@/lib/order-pricing";
+import { PROTECAO, PROTECAO_BUNDLE_ID } from "@/lib/order-protection";
 
 const utmSchema = z.record(z.string(), z.string().max(300).nullable()).optional().default({});
 
@@ -121,7 +124,12 @@ export const createPixCharge = createServerFn({ method: "POST" })
     await saveOrder(orderData);
     // Pix gerado → UTMify como pendente (não é conversão; só "paid" conta como venda).
     await reportPendingToUtmify(orderData);
-    return { id: charge.id, qrcode: charge.qrcode, amount: quote.totalCents, status: charge.status };
+    return {
+      id: charge.id,
+      qrcode: charge.qrcode,
+      amount: quote.totalCents,
+      status: charge.status,
+    };
   });
 
 export const getPixStatus = createServerFn({ method: "GET" })
@@ -154,4 +162,71 @@ export const getPixStatus = createServerFn({ method: "GET" })
       });
     }
     return { status, paid };
+  });
+
+/**
+ * Upsell "Proteção do pedido": Pix separado, gerado só depois que o pedido foi pago, com os dados do
+ * cliente guardados no servidor. Se já existe um para o pedido, devolve o mesmo (sem Pix duplicado).
+ */
+export const createProtecaoCharge = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ parentId: z.string().regex(/^[\w-]{1,64}$/), origin: z.string().url() }).parse(d),
+  )
+  .handler(async ({ data }): Promise<PixCharge> => {
+    const parent = await getOrder(data.parentId);
+    if (!parent || parent.customer?.upsellOf || parent.customer?.testOf)
+      throw new Error("Pedido não encontrado.");
+    const prev = await findUpsellOf(parent.id, PROTECAO_BUNDLE_ID);
+    if (prev?.customer.qrcode)
+      return {
+        id: prev.id,
+        qrcode: prev.customer.qrcode,
+        amount: prev.amount_cents,
+        status: prev.status,
+      };
+    const parentPaid =
+      parent.status === "paid" || isPaidStatus((await fetchGatewayStatus(parent.id)).status);
+    if (!parentPaid) throw new Error("A proteção é oferecida depois do pagamento do pedido.");
+
+    const c = parent.customer;
+    const customer = { name: c.name, email: c.email, phone: c.phone, cpf: c.cpf };
+    const { ip, ua } = requestMeta();
+    const charge = await createPix({
+      amount: PROTECAO.priceCents,
+      customer,
+      description: `${PROTECAO.nome} – ${brand.name}`.slice(0, 250),
+      items: [
+        { title: PROTECAO.nome, quantity: 1, unitPriceCents: PROTECAO.priceCents, tangible: false },
+      ],
+      origin: data.origin,
+      address: c.address,
+      ip,
+    });
+    const orderData = {
+      createdAt: Date.now(),
+      id: charge.id,
+      amountCents: PROTECAO.priceCents,
+      customer: {
+        ...customer,
+        ...(c.address ? { address: c.address } : {}),
+        qrcode: charge.qrcode,
+        method: "pix" as const,
+        upsellOf: parent.id,
+      },
+      bundleId: PROTECAO_BUNDLE_ID,
+      bundleName: PROTECAO.nome,
+      utm: parent.utm ?? {},
+      ip,
+      ua,
+      fbp: parent.fbp,
+      fbc: parent.fbc,
+    };
+    await saveOrder(orderData);
+    await reportPendingToUtmify(orderData);
+    return {
+      id: charge.id,
+      qrcode: charge.qrcode,
+      amount: PROTECAO.priceCents,
+      status: charge.status,
+    };
   });

@@ -29,6 +29,8 @@ export type StoredCustomer = {
   discount?: number;
   /** Cobrança de teste (admin) feita após o pedido indicado. Não é reportada a lugar nenhum. */
   testOf?: string;
+  /** Upsell pós-compra (ex.: Proteção do pedido) do pedido indicado. Não gera envio. */
+  upsellOf?: string;
 };
 
 async function admin() {
@@ -90,6 +92,22 @@ export async function getOrder(id: string): Promise<StoredOrder | null> {
   return (data as StoredOrder | null) ?? null;
 }
 
+/** Upsell já gerado para o pedido (o mais recente), para não criar um segundo Pix. */
+export async function findUpsellOf(
+  parentId: string,
+  bundleId: string,
+): Promise<StoredOrder | null> {
+  const db = await admin();
+  const { data } = await db
+    .from("pix_orders")
+    .select("*")
+    .eq("customer->>upsellOf", parentId)
+    .eq("bundle_id", bundleId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  return ((data as StoredOrder[] | null) ?? [])[0] ?? null;
+}
+
 /**
  * Avisa a UTMify que o Pix foi gerado (status "waiting_payment"). Isso NÃO conta como venda/conversão:
  * a UTMify só considera venda quando o mesmo orderId chega depois com status "paid".
@@ -123,7 +141,7 @@ export async function reportPendingToUtmify(o: {
       ip: o.ip ?? null,
     },
     product: { id: o.bundleId, name: o.bundleName },
-    items: utmifyItems(o.customer),
+    items: utmifyItems(o.customer, { id: o.bundleId, name: o.bundleName, cents: o.amountCents }),
     amountCents: o.amountCents,
     utm: o.utm ?? {},
     paymentMethod: o.customer.method === "card" ? "credit_card" : "pix",
@@ -227,7 +245,7 @@ export async function reportPaidOnce(
           approvedAt: Date.now(),
           customer: { name: c.name, email: c.email, phone: c.phone, document: c.cpf, ip: o.ip },
           product: { id: o.bundle_id, name: productName },
-          items: utmifyItems(c),
+          items: utmifyItems(c, { id: o.bundle_id, name: productName, cents: amount }),
           amountCents: amount,
           utm: o.utm ?? {},
           paymentMethod: c.method === "card" ? "credit_card" : "pix",
@@ -253,7 +271,11 @@ export async function reportPaidOnce(
             currency: "BRL",
             content_name: productName,
             content_ids: (c.items ?? []).map((l) => l.id),
-            contents: (c.items ?? []).map((l) => ({ id: l.id, quantity: l.qtd, item_price: l.unit })),
+            contents: (c.items ?? []).map((l) => ({
+              id: l.id,
+              quantity: l.qtd,
+              item_price: l.unit,
+            })),
             num_items: (c.items ?? []).reduce((t, l) => t + l.qtd, 0),
             content_type: "product",
             order_id: id,
@@ -301,9 +323,11 @@ export async function reportPaidOnce(
   }
 }
 
-/** Itens do pedido no formato da UTMify (preço em centavos). */
-function utmifyItems(c: StoredCustomer) {
-  return (c.items ?? []).map((l) => ({
+/** Itens do pedido no formato da UTMify (preço em centavos). Sem produtos (upsell), vai o próprio serviço. */
+function utmifyItems(c: StoredCustomer, fallback: { id: string; name: string; cents: number }) {
+  if (!c.items?.length)
+    return [{ id: fallback.id, name: fallback.name, quantity: 1, priceInCents: fallback.cents }];
+  return c.items.map((l) => ({
     id: l.id,
     name: `${l.label}${l.marca ? ` – ${l.marca}` : ""}`,
     quantity: l.qtd,

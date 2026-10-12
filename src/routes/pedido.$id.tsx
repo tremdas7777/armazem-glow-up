@@ -87,8 +87,8 @@ function Page() {
     if (session) {
       trackCheckoutClick({ source: "pix_paid", bundleId: "sacola", bundleName: name ?? "", value });
     }
-    // Pago → página de confirmação. Nenhuma cobrança extra depois do pagamento.
-    navigate({ to: "/obrigado/$id", params: { id }, replace: true });
+    // Pago → oferta da Proteção do pedido (opcional), depois a confirmação.
+    navigate({ to: "/protecao/$id", params: { id }, replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paid]);
 

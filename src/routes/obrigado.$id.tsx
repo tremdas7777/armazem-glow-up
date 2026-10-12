@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Check, PackageCheck, Truck } from "lucide-react";
-import { loadPixSession, type PixSession } from "@/lib/pix-session";
+import { Check, PackageCheck, ShieldCheck, Truck } from "lucide-react";
+import { loadPixSession, loadProtecao, type PixSession } from "@/lib/pix-session";
+import { PROTECAO } from "@/lib/order-protection";
 import { brand } from "@/lib/brand";
 import { brl } from "@/components/checkout/parts";
 import { Pill, Shell } from "@/components/checkout/OrderShell";
@@ -13,7 +14,10 @@ export const Route = createFileRoute("/obrigado/$id")({
       { property: "og:title", content: `Pedido confirmado | ${brand.name}` },
       { property: "og:description", content: `Confirmação do pedido na ${brand.name}.` },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },{ title: `Pedido confirmado | ${brand.name}` }, { name: "robots", content: "noindex" }],
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: `Pedido confirmado | ${brand.name}` },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: Page,
 });
@@ -23,7 +27,12 @@ function Page() {
   const { id } = Route.useParams();
   // Lido só no navegador para não divergir da renderização do servidor.
   const [session, setSession] = useState<PixSession | null>(null);
-  useEffect(() => setSession(loadPixSession(id)), [id]);
+  const [protecaoCents, setProtecaoCents] = useState(0);
+  useEffect(() => {
+    setSession(loadPixSession(id));
+    const p = loadProtecao(id);
+    setProtecaoCents(p?.paid ? p.amount : 0);
+  }, [id]);
 
   return (
     <Shell>
@@ -39,6 +48,11 @@ function Page() {
           Obrigado pela compra! Seu pedido já está sendo preparado. Acompanhe o envio em{" "}
           <b className="text-foreground">Rastrear pedido</b>, com o CPF usado na compra.
         </p>
+        {protecaoCents > 0 && (
+          <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--ck-badge)] px-4 py-2 text-[13px] font-semibold text-[var(--ck-ok)]">
+            <ShieldCheck className="h-4 w-4" aria-hidden /> Pedido protegido
+          </p>
+        )}
 
         {session?.items?.length ? (
           <div className="mt-8 rounded-lg border border-border bg-white p-6 text-left">
@@ -61,9 +75,15 @@ function Page() {
                 <span>Frete</span>
                 <span>{session.frete ? brl(session.frete) : "Grátis"}</span>
               </li>
+              {protecaoCents > 0 && (
+                <li className="flex justify-between gap-3">
+                  <span>{PROTECAO.nome}</span>
+                  <span>{brl(protecaoCents / 100)}</span>
+                </li>
+              )}
               <li className="flex justify-between text-base font-semibold">
                 <span>Total pago</span>
-                <span>{brl(session.amount / 100)}</span>
+                <span>{brl((session.amount + protecaoCents) / 100)}</span>
               </li>
             </ul>
           </div>

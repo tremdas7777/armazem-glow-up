@@ -69,11 +69,39 @@ export function loadPixSession(id: string): PixSession | null {
   return { ...(tab ?? {}), ...(shared ?? {}) } as PixSession;
 }
 
+/** Pix da Proteção do pedido (upsell), guardado pelo id do pedido principal. */
+export type ProtecaoSession = {
+  id: string;
+  qrcode: string;
+  /** Centavos. */
+  amount: number;
+  paid?: boolean;
+  createdAt: number;
+};
+const protecaoKey = (parentId: string) => `protecao:${parentId}`;
+
+export function saveProtecao(parentId: string, p: ProtecaoSession): void {
+  try {
+    localStorage.setItem(protecaoKey(parentId), JSON.stringify(p));
+  } catch {
+    // storage indisponível
+  }
+}
+
+export function loadProtecao(parentId: string): ProtecaoSession | null {
+  try {
+    const raw = localStorage.getItem(protecaoKey(parentId));
+    return raw ? (JSON.parse(raw) as ProtecaoSession) : null;
+  } catch {
+    return null;
+  }
+}
+
 function pruneOld(): void {
   const now = Date.now();
   for (let i = localStorage.length - 1; i >= 0; i--) {
     const k = localStorage.key(i);
-    if (!k?.startsWith("pix:")) continue;
+    if (!k?.startsWith("pix:") && !k?.startsWith("protecao:")) continue;
     try {
       const s = JSON.parse(localStorage.getItem(k) ?? "null") as PixSession | null;
       if (!s || now - (s.createdAt ?? 0) > MAX_AGE_MS) localStorage.removeItem(k);
