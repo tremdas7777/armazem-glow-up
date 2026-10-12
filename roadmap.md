@@ -1,4 +1,7 @@
 # Infrastructure setup
+- [ ] Add sneakers, a Crocs-like catalog model, a bag and a boot to owner-selected bestsellers, keeping the papete first.
+- [ ] Rename the featured sandal to Papete Moleca.
+- [ ] Publish customer reviews: blocked pending genuine customer feedback; do not fabricate testimonials.
 - [x] Add the uploaded Moleca sandal as one product with its photo color options to the bestselling selection, priced at R$ 29.90 with the existing store discount.
 - [x] Research market-popular catalog models and replace the provisional homepage selection, with matching collection filtering and checks.
 - [x] Replace the homepage banner with the existing Moleca homepage video and verify playback.

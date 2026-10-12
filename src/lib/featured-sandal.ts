@@ -16,7 +16,7 @@ export const FEATURED_SANDAL: Produto = {
   id: SANDAL_ID,
   // Store SKU, not an unverified manufacturer reference.
   ref: "AF-STRASS",
-  nome: "Sandália Moleca com Strass",
+  nome: "Papete Moleca",
   marca: "Moleca",
   categoria: "sandalias",
   // Existing store-wide 50% discount yields the requested final price of 29.90.
@@ -32,7 +32,7 @@ export const FEATURED_SANDAL: Produto = {
     { nome: "Nude dourado", imagem: 6 },
   ],
   tamanhos: [],
-  descricao: "Sandália Moleca com tiras de brilho e solado baixo. Disponível nas cores das fotos: preto, azul, off-white com brilho cobre, nude, pink, off-white e nude com brilho dourado.",
+  descricao: "Papete Moleca com tiras de brilho e solado baixo. Disponível nas cores das fotos: preto, azul, off-white com brilho cobre, nude, pink, off-white e nude com brilho dourado.",
 };
 
 // Keep the existing cart/order contract: the selected color travels with the size.
