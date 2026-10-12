@@ -324,6 +324,16 @@ html { scroll-behavior: smooth; }
 .store .qty button { width: 42px; height: 46px; border: 0; background: none; font-size: 18px; color: var(--ink); }
 .store .qty span { min-width: 30px; text-align: center; font-weight: 700; }
 .store .pdp__buy { display: grid; gap: 10px; margin-top: 28px; }
+.store .qty-promo__tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.store .qty-promo__tier {
+  display: grid; gap: 2px; justify-items: center; padding: 10px 6px; border: 1.5px solid var(--line);
+  border-radius: var(--radius); background: var(--white); color: var(--ink); transition: .15s;
+}
+.store .qty-promo__tier strong { font-size: 13px; }
+.store .qty-promo__price { font-size: 16px; font-weight: 800; color: var(--pink); }
+.store .qty-promo__tier small { font-size: 11px; color: var(--muted); }
+.store .qty-promo__tier:hover { border-color: var(--pink); }
+.store .qty-promo__tier.active { border-color: var(--pink); background: var(--pink-soft); }
 .store .pdp__perks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 10px; font-size: 13px; color: var(--muted); }
 .store .pdp__perks li { display: flex; gap: 10px; align-items: center; }
 .store .pdp__perks svg { width: 20px; height: 20px; flex: none; stroke: var(--pink); fill: none; stroke-width: 2; }

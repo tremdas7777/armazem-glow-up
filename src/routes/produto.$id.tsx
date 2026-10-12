@@ -10,6 +10,7 @@ import { MAX_QTY, useCart } from "@/lib/cart";
 import { metaTrack } from "@/lib/meta-pixel";
 import { tiktokTrack } from "@/lib/tiktok-pixel";
 import { brl, priceOf, store } from "@/lib/store-settings";
+import { isQtyPromo, promoTotalCents, QTY_PROMO } from "@/lib/qty-promo";
 
 export const Route = createFileRoute("/produto/$id")({
   loader: ({ params }) => {
@@ -24,12 +25,23 @@ export const Route = createFileRoute("/produto/$id")({
     return {
       meta: [
         { title },
-        { name: "description", content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}` },
+        {
+          name: "description",
+          content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}`,
+        },
         { property: "og:title", content: title },
-        { property: "og:description", content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}` },
+        {
+          property: "og:description",
+          content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}`,
+        },
         { property: "og:type", content: "product" },
         { name: "twitter:card", content: "summary_large_image" },
-        ...(p.imagens[0]?.startsWith("https://") ? [{ property: "og:image", content: p.imagens[0] }, { name: "twitter:image", content: p.imagens[0] }] : []),
+        ...(p.imagens[0]?.startsWith("https://")
+          ? [
+              { property: "og:image", content: p.imagens[0] },
+              { name: "twitter:image", content: p.imagens[0] },
+            ]
+          : []),
       ],
     };
   },
@@ -42,7 +54,9 @@ function ProductPage() {
   if (!p) throw notFound();
   const cart = useCart();
   const navigate = useNavigate();
-  const [size, setSize] = useState<string | null>(p.tamanhos.length === 1 ? p.tamanhos[0] ?? null : null);
+  const [size, setSize] = useState<string | null>(
+    p.tamanhos.length === 1 ? (p.tamanhos[0] ?? null) : null,
+  );
   const [color, setColor] = useState(p.cores?.[0]?.nome ?? "");
   const sizes = [...new Set(p.tamanhos.map((t) => t.split(" · ")[0] ?? t))];
   const [sizeError, setSizeError] = useState(false);
@@ -51,7 +65,7 @@ function ProductPage() {
   const { price } = priceOf(p);
 
   useEffect(() => {
-    setSize(p.tamanhos.length === 1 ? p.tamanhos[0] ?? null : null);
+    setSize(p.tamanhos.length === 1 ? (p.tamanhos[0] ?? null) : null);
     setColor(p.cores?.[0]?.nome ?? "");
     setQty(1);
     setImg(0);
@@ -70,8 +84,9 @@ function ProductPage() {
       return;
     }
     cart.add(p.id, p.cores?.length ? `${size} · ${color}` : size, qty);
-    metaTrack("AddToCart", { value: price * qty, contentName: p.nome });
-    tiktokTrack("AddToCart", { value: price * qty, contentId: p.id, contentName: p.nome });
+    const value = isQtyPromo(p.id) ? promoTotalCents(qty) / 100 : price * qty;
+    metaTrack("AddToCart", { value, contentName: p.nome });
+    tiktokTrack("AddToCart", { value, contentId: p.id, contentName: p.nome });
     if (goCheckout) navigate({ to: "/checkout" });
     else {
       toast.success(`${p.nome} adicionado à sacola`);
@@ -97,11 +112,17 @@ function ProductPage() {
             {p.imagens.length > 1 && (
               <div className="gallery__thumbs">
                 {p.imagens.map((src, i) => (
-                  <Button variant="ghost" key={src} aria-label={`Ver foto ${i + 1}`} className={`thumb ${i === img ? "active" : ""}`} onClick={() => {
-                    setImg(i);
-                    const option = p.cores?.find((c) => c.imagem === i);
-                    if (option) setColor(option.nome);
-                  }}>
+                  <Button
+                    variant="ghost"
+                    key={src}
+                    aria-label={`Ver foto ${i + 1}`}
+                    className={`thumb ${i === img ? "active" : ""}`}
+                    onClick={() => {
+                      setImg(i);
+                      const option = p.cores?.find((c) => c.imagem === i);
+                      if (option) setColor(option.nome);
+                    }}
+                  >
                     <img src={src} alt="" loading="lazy" decoding="async" />
                   </Button>
                 ))}
@@ -114,6 +135,35 @@ function ProductPage() {
             </div>
             <h1>{p.nome}</h1>
             <Price p={p} big />
+            {isQtyPromo(p.id) && (
+              <div className="qty-promo" aria-label="Leve mais, pague menos">
+                <div className="opt-label">
+                  Leve mais, pague menos <span>pode misturar cores e tamanhos</span>
+                </div>
+                <div className="qty-promo__tiers">
+                  {QTY_PROMO.tiersCents.map((cents, i) => {
+                    const n = i + 1;
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        className={`qty-promo__tier ${qty === n ? "active" : ""}`}
+                        aria-pressed={qty === n}
+                        onClick={() => setQty(n)}
+                      >
+                        <strong>
+                          {n} {n === 1 ? "par" : "pares"}
+                        </strong>
+                        <span className="qty-promo__price">{brl(cents / 100)}</span>
+                        <small>
+                          {n === 1 ? "\u00a0" : `${brl(Math.floor(cents / n) / 100)} cada`}
+                        </small>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {p.cor && (
               <div className="opt-label">
@@ -122,13 +172,30 @@ function ProductPage() {
             )}
             {p.cores && (
               <>
-                <div className="opt-label">Cor <span>{color}</span></div>
+                <div className="opt-label">
+                  Cor <span>{color}</span>
+                </div>
                 <div className="flex flex-wrap gap-2" aria-label="Cores disponíveis">
                   {p.cores.map((c) => (
-                    <Button variant="outline" key={c.nome} title={c.nome} aria-label={`Cor ${c.nome}`} aria-pressed={color === c.nome}
+                    <Button
+                      variant="outline"
+                      key={c.nome}
+                      title={c.nome}
+                      aria-label={`Cor ${c.nome}`}
+                      aria-pressed={color === c.nome}
                       className={`thumb h-16 w-16 p-1 ${color === c.nome ? "active" : ""}`}
-                      onClick={() => { setColor(c.nome); setImg(c.imagem); }}>
-                      <img className="h-full w-full object-contain" src={p.imagens[c.imagem]} alt={c.nome} loading="lazy" decoding="async" />
+                      onClick={() => {
+                        setColor(c.nome);
+                        setImg(c.imagem);
+                      }}
+                    >
+                      <img
+                        className="h-full w-full object-contain"
+                        src={p.imagens[c.imagem]}
+                        alt={c.nome}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </Button>
                   ))}
                 </div>
@@ -151,7 +218,9 @@ function ProductPage() {
                 </button>
               ))}
             </div>
-            <div className={`size-error ${sizeError ? "show" : ""}`}>Escolha um tamanho para continuar.</div>
+            <div className={`size-error ${sizeError ? "show" : ""}`}>
+              Escolha um tamanho para continuar.
+            </div>
 
             <div className="opt-label">Quantidade</div>
             <div className="qty">
@@ -159,7 +228,11 @@ function ProductPage() {
                 −
               </button>
               <span>{qty}</span>
-              <button aria-label="Aumentar" disabled={qty >= MAX_QTY} onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}>
+              <button
+                aria-label="Aumentar"
+                disabled={qty >= MAX_QTY}
+                onClick={() => setQty((q) => Math.min(MAX_QTY, q + 1))}
+              >
                 +
               </button>
             </div>
@@ -175,13 +248,17 @@ function ProductPage() {
 
             <ul className="pdp__perks">
               <li>
-                <svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" /></svg>
+                <svg viewBox="0 0 24 24">
+                  <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" />
+                </svg>
                 {store.shipping.padrao.freeFrom > 0
                   ? `Frete grátis acima de ${brl(store.shipping.padrao.freeFrom)}`
                   : "Frete grátis para todo o Brasil"}
               </li>
               <li>
-                <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2" /></svg>
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2" />
+                </svg>
                 7 dias para trocar ou devolver
               </li>
             </ul>
@@ -195,19 +272,37 @@ function ProductPage() {
                 <summary>Características</summary>
                 <table>
                   <tbody>
-                    <tr><td>Marca</td><td>{p.marca}</td></tr>
-                    <tr><td>Referência</td><td>{p.ref}</td></tr>
-                    <tr><td>Categoria</td><td>{categoryName(p.categoria)}</td></tr>
-                    {p.cor && <tr><td>Cor</td><td>{p.cor}</td></tr>}
-                    <tr><td>Numeração</td><td>{sizes.join(", ")}</td></tr>
+                    <tr>
+                      <td>Marca</td>
+                      <td>{p.marca}</td>
+                    </tr>
+                    <tr>
+                      <td>Referência</td>
+                      <td>{p.ref}</td>
+                    </tr>
+                    <tr>
+                      <td>Categoria</td>
+                      <td>{categoryName(p.categoria)}</td>
+                    </tr>
+                    {p.cor && (
+                      <tr>
+                        <td>Cor</td>
+                        <td>{p.cor}</td>
+                      </tr>
+                    )}
+                    <tr>
+                      <td>Numeração</td>
+                      <td>{sizes.join(", ")}</td>
+                    </tr>
                   </tbody>
                 </table>
               </details>
               <details>
                 <summary>Trocas e devoluções</summary>
                 <p>
-                  Você tem 7 dias após o recebimento para desistir da compra, como garante o Código de Defesa
-                  do Consumidor. Veja a <Link to="/politica-reembolso">política de trocas</Link>.
+                  Você tem 7 dias após o recebimento para desistir da compra, como garante o Código
+                  de Defesa do Consumidor. Veja a{" "}
+                  <Link to="/politica-reembolso">política de trocas</Link>.
                 </p>
               </details>
             </div>

@@ -4,6 +4,7 @@ import { getProduct, itemLabel } from "@/lib/catalog";
 import { fretes, priceOf, type Frete, type FreteId } from "@/lib/store-settings";
 import type { GatewayItem } from "@/lib/gateway-items";
 import { bumpKey, bumpPrice, getBump } from "@/lib/order-bumps";
+import { isQtyPromo, splitQtyPromo } from "@/lib/qty-promo";
 
 export type OrderItemInput = {
   id: string;
@@ -45,6 +46,22 @@ export class OrderError extends Error {}
 
 const cents = (v: number) => Math.round(v * 100);
 
+/**
+ * Preço por quantidade (qty-promo.ts): as linhas da papete (fora do order bump) recebem o valor da
+ * promoção; uma linha pode virar duas quando as unidades têm centavos diferentes.
+ */
+function applyQtyPromo(lines: OrderLine[]): OrderLine[] {
+  const promo = lines.filter((l) => isQtyPromo(l.id) && !l.bump);
+  if (!promo.length) return lines;
+  const split = new Map(
+    splitQtyPromo(promo).map(({ line, parts }) => [
+      line,
+      parts.map((p) => ({ ...line, qtd: p.qtd, unit: p.unitCents / 100 })),
+    ]),
+  );
+  return lines.flatMap((l) => split.get(l) ?? [l]);
+}
+
 export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): OrderQuote {
   if (!items.length) throw new OrderError("Sua sacola está vazia.");
   // Junta linhas repetidas (mesmo produto, tamanho e oferta).
@@ -56,7 +73,7 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
   }
   // Cada oferta vale 1 unidade por pedido, mesmo quando ela tem vários modelos para escolher.
   const usedBumps = new Set<string>();
-  const lines: OrderLine[] = [...merged.values()].map((it) => {
+  const baseLines: OrderLine[] = [...merged.values()].map((it) => {
     const p = getProduct(it.id);
     if (!p) throw new OrderError("Um produto da sacola não está mais disponível.");
     if (!p.tamanhos.includes(it.tamanho))
@@ -80,6 +97,7 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
       ...(bump ? { bump: true } : {}),
     };
   });
+  const lines = applyQtyPromo(baseLines);
   const subtotalCents = lines.reduce((s, l) => s + cents(l.unit) * l.qtd, 0);
   const subtotal = subtotalCents / 100;
   // "gratis" e "padrao" são a mesma opção: o valor do pedido decide se o frete sai de graça.

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { getProduct, type Produto } from "@/lib/catalog";
 import { priceOf } from "@/lib/store-settings";
+import { isQtyPromo, splitQtyPromo } from "@/lib/qty-promo";
 
 export type CartItem = { id: string; tamanho: string; qtd: number };
 export type CartLine = CartItem & { product: Produto; unit: number; total: number };
@@ -81,16 +82,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
   const clear = useCallback(() => setItems([]), []);
 
-  const lines = useMemo(
-    () =>
-      items.flatMap((it): CartLine[] => {
-        const product = getProduct(it.id);
-        if (!product) return [];
-        const unit = priceOf(product).price;
-        return [{ ...it, product, unit, total: Math.round(unit * it.qtd * 100) / 100 }];
-      }),
-    [items],
-  );
+  const lines = useMemo(() => {
+    const base = items.flatMap((it): CartLine[] => {
+      const product = getProduct(it.id);
+      if (!product) return [];
+      const unit = priceOf(product).price;
+      return [{ ...it, product, unit, total: Math.round(unit * it.qtd * 100) / 100 }];
+    });
+    // Preço por quantidade da papete: mesma regra do servidor (order-pricing.ts).
+    const promo = base.filter((l) => isQtyPromo(l.id));
+    if (!promo.length) return base;
+    const totals = new Map(
+      splitQtyPromo(promo).map(({ line, parts }) => [
+        line,
+        parts.reduce((s, p) => s + p.qtd * p.unitCents, 0) / 100,
+      ]),
+    );
+    return base.map((l) => {
+      const total = totals.get(l);
+      return total === undefined
+        ? l
+        : { ...l, total, unit: Math.round((total / l.qtd) * 100) / 100 };
+    });
+  }, [items]);
   const value: CartCtx = {
     items,
     lines,
