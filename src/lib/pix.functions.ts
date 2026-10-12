@@ -40,7 +40,7 @@ const customerSchema = z.object({
     .transform((v) => v.replace(/\D/g, ""))
     .refine(isValidCpf, "CPF inválido"),
   origin: z.string().url(),
-  frete: z.enum(["gratis", "padrao", "express"]).default("gratis"),
+  frete: z.enum(["gratis", "padrao", "rapido", "express"]).default("gratis"),
   endereco: z.string().max(300).optional(),
   address: z.object({
     street: z.string().trim().min(1).max(200),

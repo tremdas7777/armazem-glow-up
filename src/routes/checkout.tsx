@@ -179,7 +179,9 @@ function Page() {
   const orderSubtotal = Math.round(orderLines.reduce((s, l) => s + l.total, 0) * 100) / 100;
 
   const fretes = fretesDisponiveis(orderSubtotal);
-  const freteOpt = (frete === "express" && fretes.find((f) => f.id === "express")) || fretes[0]!;
+  // "gratis"/"padrao" = opção padrão (o subtotal decide se é grátis); as pagas são escolhidas pelo id.
+  const freteOpt =
+    (frete !== "gratis" && frete !== "padrao" && fretes.find((f) => f.id === frete)) || fretes[0]!;
   const faltaFreteGratis = missingForFreeShipping(orderSubtotal);
   const freteValue = freteOpt.price;
   // Só Pix (SagacePay ou MagicPay): o servidor recalcula tudo com a mesma regra antes de cobrar.

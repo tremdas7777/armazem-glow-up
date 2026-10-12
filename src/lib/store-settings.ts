@@ -22,6 +22,10 @@ export const storeConfigSchema = z.object({
       /** 0 = frete grátis em qualquer pedido. */
       freeFrom: money.default(0),
     }),
+    /** Frete pago intermediário: mais rápido que o grátis, mais barato que o Express. */
+    rapido: z
+      .object({ price: money, eta: z.string().trim().min(1).max(60) })
+      .default({ price: 19.9, eta: "3 a 6 dias úteis" }),
     express: z.object({ price: money, eta: z.string().trim().min(1).max(60) }),
   }),
 });
@@ -32,6 +36,7 @@ export const DEFAULT_STORE: StoreConfig = {
   discountPct: 50,
   shipping: {
     padrao: { eta: "5 a 8 dias úteis", price: 14.9, freeFrom: 0 },
+    rapido: { price: 19.9, eta: "3 a 6 dias úteis" },
     express: { price: 34.9, eta: "2 a 4 dias úteis" },
   },
 };
@@ -56,7 +61,7 @@ export function priceOf(p: Produto): { price: number; compareAt: number | null; 
   return { price, compareAt, off: compareAt ? Math.round((1 - price / compareAt) * 100) : 0 };
 }
 
-export type FreteId = "gratis" | "padrao" | "express";
+export type FreteId = "gratis" | "padrao" | "rapido" | "express";
 export type Frete = { id: FreteId; name: string; eta: string; price: number };
 
 /** Pedido (produtos, já com desconto) que ganha frete grátis. */
@@ -69,7 +74,7 @@ export const missingForFreeShipping = (subtotal: number) =>
 
 /**
  * Opções de frete para o subtotal: Frete Grátis a partir do valor mínimo (abaixo, Frete Padrão
- * pago), ou Express pago para chegar mais rápido. A primeira opção é sempre a padrão.
+ * pago), ou Rápido e Express pagos para chegar antes. A primeira opção é sempre a padrão.
  */
 export function fretes(subtotal: number): Frete[] {
   const { eta, price } = store.shipping.padrao;
@@ -77,7 +82,18 @@ export function fretes(subtotal: number): Frete[] {
     hasFreeShipping(subtotal)
       ? { id: "gratis", name: "Frete Grátis", eta, price: 0 }
       : { id: "padrao", name: "Frete Padrão", eta, price },
-    { id: "express", name: "Frete Express", eta: store.shipping.express.eta, price: store.shipping.express.price },
+    {
+      id: "rapido",
+      name: "Frete Rápido",
+      eta: store.shipping.rapido.eta,
+      price: store.shipping.rapido.price,
+    },
+    {
+      id: "express",
+      name: "Frete Express",
+      eta: store.shipping.express.eta,
+      price: store.shipping.express.price,
+    },
   ];
 }
 

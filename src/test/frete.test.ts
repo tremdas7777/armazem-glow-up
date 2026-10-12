@@ -43,7 +43,10 @@ describe("pedido da sacola", () => {
   it("com valor mínimo no painel, frete grátis a partir dele; abaixo cobra o Frete Padrão", () => {
     applyStore({
       discountPct: 0,
-      shipping: { ...DEFAULT_STORE.shipping, padrao: { ...DEFAULT_STORE.shipping.padrao, freeFrom: 100 } },
+      shipping: {
+        ...DEFAULT_STORE.shipping,
+        padrao: { ...DEFAULT_STORE.shipping.padrao, freeFrom: 100 },
+      },
     });
     const barato = PRODUCTS.find((p) => p.preco < 100 && p.tamanhos.includes("37"))!;
     const caro = PRODUCTS.find((p) => p.preco >= 100 && p.tamanhos.includes("37"))!;
@@ -68,7 +71,10 @@ describe("pedido da sacola", () => {
   it("configuração salva antes do frete mínimo continua válida, com frete grátis para todos", () => {
     applyStore({
       discountPct: 30,
-      shipping: { padrao: { eta: "5 a 8 dias úteis" }, express: { price: 34.9, eta: "2 a 4 dias úteis" } },
+      shipping: {
+        padrao: { eta: "5 a 8 dias úteis" },
+        express: { price: 34.9, eta: "2 a 4 dias úteis" },
+      },
     });
     expect(store.discountPct).toBe(30);
     expect(store.shipping.padrao).toMatchObject({ price: 14.9, freeFrom: 0 });
@@ -78,6 +84,31 @@ describe("pedido da sacola", () => {
     applyStore(DEFAULT_STORE);
     const barato = PRODUCTS.find((p) => p.preco < 30 && p.tamanhos.includes("37")) ?? sandalia;
     expect(quoteOrder([{ id: barato.id, tamanho: "37", qtd: 1 }], "gratis").frete.price).toBe(0);
+  });
+
+  it("Frete Rápido: pago, entre o grátis e o Express, e vai ao gateway", () => {
+    applyStore(DEFAULT_STORE);
+    const q = quoteOrder([{ id: sandalia.id, tamanho: "37", qtd: 1 }], "rapido");
+    expect(q.frete).toMatchObject({ id: "rapido", name: "Frete Rápido", price: 19.9 });
+    expect(q.frete.price).toBeLessThan(store.shipping.express.price);
+    expect(q.gatewayItems.at(-1)).toMatchObject({
+      title: "Frete Rápido",
+      unitPriceCents: 1990,
+      tangible: false,
+    });
+    expect(itemsTotalCents(q.gatewayItems)).toBe(q.totalCents);
+  });
+
+  it("configuração salva sem o Frete Rápido ganha o valor padrão dele", () => {
+    applyStore({
+      discountPct: 50,
+      shipping: {
+        padrao: { eta: "5 a 8 dias úteis" },
+        express: { price: 34.9, eta: "2 a 4 dias úteis" },
+      },
+    });
+    expect(store.discountPct).toBe(50);
+    expect(store.shipping.rapido).toEqual({ price: 19.9, eta: "3 a 6 dias úteis" });
   });
 
   it("recusa produto inexistente, tamanho fora da grade e sacola vazia", () => {

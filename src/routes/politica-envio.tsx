@@ -41,6 +41,10 @@ export const Route = createFileRoute("/politica-envio")({
           <li>Frete Grátis, em todos os pedidos: {store.shipping.padrao.eta} após a postagem.</li>
         )}
         <li>
+          Frete Rápido: {brl(store.shipping.rapido.price)}, {store.shipping.rapido.eta} após a
+          postagem.
+        </li>
+        <li>
           Frete Express: {brl(store.shipping.express.price)}, {store.shipping.express.eta} após a
           postagem.
         </li>
