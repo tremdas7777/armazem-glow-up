@@ -9,6 +9,7 @@ import { StoreTab } from "@/components/admin/StoreTab";
 import { brand } from "@/lib/brand";
 import { PushcutCard } from "@/components/admin/PushcutCard";
 import { MetaPixelCard } from "@/components/admin/MetaPixelCard";
+import { TiktokPixelCard } from "@/components/admin/TiktokPixelCard";
 import { OrdersTab } from "@/components/admin/OrdersTab";
 import { AbandonedTab } from "@/components/admin/AbandonedTab";
 import { ProfitTab } from "@/components/admin/ProfitTab";
@@ -255,6 +256,7 @@ function AdminPage() {
               <UtmifyCard password={password} />
               <PushcutCard password={password} />
               <MetaPixelCard password={password} />
+              <TiktokPixelCard password={password} />
             </section>
 
             {/* Time filters */}

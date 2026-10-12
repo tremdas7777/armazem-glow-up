@@ -8,6 +8,7 @@ import { brand } from "@/lib/brand";
 import { categoryName, getProduct, PRODUCTS } from "@/lib/catalog";
 import { MAX_QTY, useCart } from "@/lib/cart";
 import { metaTrack } from "@/lib/meta-pixel";
+import { tiktokTrack } from "@/lib/tiktok-pixel";
 import { brl, priceOf, store } from "@/lib/store-settings";
 
 export const Route = createFileRoute("/produto/$id")({
@@ -55,6 +56,7 @@ function ProductPage() {
     setQty(1);
     setImg(0);
     metaTrack("ViewContent", { value: price, contentName: p.nome });
+    tiktokTrack("ViewContent", { value: price, contentId: p.id, contentName: p.nome });
   }, [p.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const related = [
@@ -69,6 +71,7 @@ function ProductPage() {
     }
     cart.add(p.id, p.cores?.length ? `${size} · ${color}` : size, qty);
     metaTrack("AddToCart", { value: price * qty, contentName: p.nome });
+    tiktokTrack("AddToCart", { value: price * qty, contentId: p.id, contentName: p.nome });
     if (goCheckout) navigate({ to: "/checkout" });
     else {
       toast.success(`${p.nome} adicionado à sacola`);

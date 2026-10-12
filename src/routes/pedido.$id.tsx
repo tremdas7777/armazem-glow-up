@@ -6,6 +6,7 @@ import { Copy, Loader2 } from "lucide-react";
 import pixWaiting from "@/assets/pix-waiting.png";
 import { getPixStatus } from "@/lib/pix.functions";
 import { metaPurchaseBrowser } from "@/lib/meta-pixel";
+import { tiktokPurchaseBrowser } from "@/lib/tiktok-pixel";
 import { loadPixSession, type PixSession } from "@/lib/pix-session";
 import { brand } from "@/lib/brand";
 import { useCart } from "@/lib/cart";
@@ -30,7 +31,6 @@ const EXPIRES_MS = 30 * 60 * 1000;
 type DataLayerWindow = Window & {
   dataLayer?: Array<Record<string, unknown>>;
   fbq?: (...args: unknown[]) => void;
-  ttq?: { track: (event: string, data?: Record<string, unknown>) => void };
 };
 
 /** Status finais do gateway (além de "paid"): param a consulta automática. */
@@ -79,7 +79,7 @@ function Page() {
     const w = window as DataLayerWindow;
     try {
       metaPurchaseBrowser(id, value, name);
-      w.ttq?.track("CompletePayment", { value, currency: "BRL" });
+      tiktokPurchaseBrowser(id, value);
       w.dataLayer?.push({ event: "purchase", currency: "BRL", value });
     } catch {
       // pixels indisponíveis

@@ -17,7 +17,8 @@ import { OrderError, quoteOrder } from "@/lib/order-pricing";
 import { isValidCpf } from "@/lib/cpf";
 import { PROTECAO, PROTECAO_BUNDLE_ID } from "@/lib/order-protection";
 
-const utmSchema = z.record(z.string(), z.string().max(300).nullable()).optional().default({});
+// 600: cabe o ttclid do TikTok, que vai junto das UTMs.
+const utmSchema = z.record(z.string(), z.string().max(600).nullable()).optional().default({});
 
 const itemSchema = z.object({
   id: z.string().min(1).max(64),

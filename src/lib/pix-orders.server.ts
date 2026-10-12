@@ -2,6 +2,7 @@
 // (UTMify + Meta CAPI) mesmo que o cliente feche a página. Somente servidor.
 import { sendUtmifyOrder, type UtmParams } from "@/lib/utmify.server";
 import { sendCapiEvent } from "@/lib/meta.server";
+import { sendTiktokEvent } from "@/lib/tiktok.server";
 import { sendRotasyncOrder, type RotasyncAddress } from "@/lib/rotasync.server";
 import { isPaidStatus } from "@/lib/pix-status";
 import { fetchPixStatus } from "@/lib/pix-gateway.server";
@@ -226,6 +227,7 @@ export async function reportPaidOnce(
     const done = (o.report_result ?? {}) as {
       utmify?: { ok?: boolean };
       meta?: { ok?: boolean };
+      tiktok?: { ok?: boolean };
       pushcut?: PushcutResult;
     };
     // Pushcut "Venda aprovada" (com o valor): uma vez por pedido, mesmo se a UTMify/Meta forem
@@ -281,6 +283,36 @@ export async function reportPaidOnce(
             order_id: id,
           },
         });
+    // TikTok Events API: mesma compra, com o event_id do navegador (purchase-<id>) para não duplicar.
+    const tt = (o.utm ?? {}) as Record<string, string | null | undefined>;
+    const tiktok = done.tiktok?.ok
+      ? done.tiktok
+      : await sendTiktokEvent({
+          event: "CompletePayment",
+          eventId: `purchase-${id}`,
+          url: extra?.url,
+          user: {
+            email: c.email,
+            phone: c.phone,
+            cpf: c.cpf,
+            ip: extra?.ip ?? o.ip ?? null,
+            ua: extra?.ua ?? o.ua ?? null,
+            ttclid: tt["ttclid"] ?? null,
+            ttp: tt["ttp"] ?? null,
+          },
+          properties: {
+            value: amount / 100,
+            currency: "BRL",
+            content_type: "product",
+            contents: (c.items ?? []).map((l) => ({
+              content_id: l.id,
+              content_name: l.nome,
+              quantity: l.qtd,
+              price: l.unit,
+            })),
+            order_id: id,
+          },
+        });
     // Rastreio (Rotasync): cada pedido pago vira um envio com os produtos reais.
     // Se a API já respondeu de forma definitiva (sucesso, 422, 401, 402, 403), não reenvia.
     const prev = (o.report_result as { rastro?: { ok?: boolean; status?: number } } | null)?.rastro;
@@ -299,8 +331,8 @@ export async function reportPaidOnce(
               products: c.items.map((l) => ({ name: l.label, quantity: l.qtd, price: l.unit })),
             });
     // O rastreio fica fora do allOk: é idempotente por external_id e um 422 não deve ser retentado.
-    const allOk = utmify.ok && meta.ok;
-    console.log("reportPaidOnce", id, JSON.stringify({ utmify, meta, rastro, pushcut }));
+    const allOk = utmify.ok && meta.ok && tiktok.ok;
+    console.log("reportPaidOnce", id, JSON.stringify({ utmify, meta, tiktok, rastro, pushcut }));
     // Guarda o resultado; se algo falhou, libera a trava para nova tentativa.
     await db
       .from("pix_orders")
@@ -309,6 +341,7 @@ export async function reportPaidOnce(
           ...((o.report_result as Record<string, unknown> | null) ?? {}),
           utmify,
           meta,
+          tiktok,
           rastro,
           pushcut,
           at: new Date().toISOString(),

@@ -18,6 +18,7 @@ import { savePixSession } from "@/lib/pix-session";
 import { getSessionId, getStoredUtms } from "@/lib/tracking";
 import { trackCheckoutStep, type CheckoutStep } from "@/lib/checkout-tracking.functions";
 import { getMetaCookies, metaTrack } from "@/lib/meta-pixel";
+import { getTiktokIds, tiktokTrack } from "@/lib/tiktok-pixel";
 import { trackCheckoutClick } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import {
@@ -105,6 +106,7 @@ function Page() {
     if (tracked.current || !lines.length) return;
     tracked.current = true;
     metaTrack("InitiateCheckout", { value: subtotal, contentName: cartName });
+    tiktokTrack("InitiateCheckout", { value: subtotal, contentName: cartName });
   }, [lines.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const [step, setStep] = useState<Step>(1);
   const [id, setId] = useState({ name: "", email: "", cpf: "", phone: "" });
@@ -267,7 +269,8 @@ function Page() {
     ],
     frete: freteOpt.id,
     origin: window.location.origin,
-    utm: getStoredUtms(),
+    // ttclid/_ttp do TikTok vão junto das UTMs para a compra paga ser atribuída pelo servidor.
+    utm: { ...getStoredUtms(), ...getTiktokIds() },
     endereco: `${addr.rua}, ${addr.numero} ${addr.complemento} - ${addr.bairro}, ${addr.cidade}/${addr.uf} ${addr.cep}`,
     address: structuredAddress(),
   });
@@ -309,6 +312,7 @@ function Page() {
         method: "pix",
       });
       metaTrack("AddPaymentInfo", { value: pixTotal, contentName: cartName });
+      tiktokTrack("AddPaymentInfo", { value: pixTotal, contentName: cartName });
       trackCheckoutClick({
         source: "pix_generated",
         bundleId: "sacola",
