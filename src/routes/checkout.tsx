@@ -588,7 +588,7 @@ function Page() {
       <div className="ck flex min-h-screen flex-col text-foreground">
         <header className="flex justify-center py-6 md:py-10">
           <Link to="/">
-            <BrandLogo className="text-3xl md:text-4xl" />
+            <BrandLogo className="h-8 md:h-10" />
           </Link>
         </header>
         <main className="mx-auto flex max-w-md flex-1 flex-col items-center px-4 pb-24 pt-8 text-center">
@@ -611,7 +611,7 @@ function Page() {
     <div className="ck flex min-h-screen flex-col text-foreground">
       <header className="flex justify-center py-6 md:py-10">
         <Link to="/">
-          <BrandLogo className="text-3xl md:text-4xl" />
+          <BrandLogo className="h-8 md:h-10" />
         </Link>
       </header>
       <SummaryMobile lines={orderLines} subtotal={orderSubtotal} frete={freteValue} />

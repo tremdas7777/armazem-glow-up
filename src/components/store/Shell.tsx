@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { brand } from "@/lib/brand";
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { categoriesWithProducts, PRODUCTS } from "@/lib/catalog";
 import { MAX_QTY, useCart } from "@/lib/cart";
 import { brl, priceOf, store } from "@/lib/store-settings";
@@ -57,9 +58,11 @@ function Header() {
           <button className="icon-btn menu-toggle" aria-label="Abrir menu" onClick={() => setMenu(true)}>
             <Icon d="M3 6h18M3 12h18M3 18h18" />
           </button>
-          {brand.showLogo && <Link to="/" className="logo">
-            {brand.name}
-          </Link>}
+          {brand.showLogo && (
+            <Link to="/" className="logo">
+              <BrandLogo tone="original" />
+            </Link>
+          )}
           <nav className={`nav ${menu ? "open" : ""}`}>
             {navLink("/", "Home")}
             {navLink("/colecao", "Lançamentos", { novo: "1" })}
@@ -130,9 +133,11 @@ function Footer() {
       <div className="container">
         <div className="footer__grid">
           <div className="footer__brand">
-            {brand.showLogo && <Link to="/" className="logo">
-              {brand.name}
-            </Link>}
+            {brand.showLogo && (
+              <Link to="/" className="logo">
+                <BrandLogo tone="original" />
+              </Link>
+            )}
             <p style={{ maxWidth: "34ch", lineHeight: 1.6, margin: "14px 0 0" }}>
               {brand.tagline}. Calçados de várias marcas, com conforto e estilo para todos os passos.
             </p>

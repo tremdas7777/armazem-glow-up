@@ -1,16 +1,38 @@
 import { cn } from "@/lib/utils";
 import { brand } from "@/lib/brand";
 
-/** Logo em texto da loja (troque por uma imagem quando houver o arquivo do logo). */
-export function BrandLogo({ className }: { className?: string }) {
+export const LOGO_SRC = "/logo-moleca.png";
+/** Proporção do arquivo do logo (largura / altura). */
+const LOGO_RATIO = 256 / 53;
+
+/**
+ * Logo da loja. `tone="original"` usa o arquivo amarelo (para fundos escuros);
+ * `tone="brand"` pinta o mesmo desenho na cor da marca (para fundos claros).
+ * Controle o tamanho pela altura (ex.: `h-8`).
+ */
+export function BrandLogo({
+  className,
+  tone = "brand",
+}: {
+  className?: string;
+  tone?: "original" | "brand";
+}) {
   if (!brand.showLogo) return null;
 
+  if (tone === "original") {
+    return <img src={LOGO_SRC} alt={brand.name} className={cn("block w-auto", className)} />;
+  }
   return (
     <span
-      className={cn("inline-flex items-center font-black leading-none tracking-tight whitespace-nowrap", className)}
-      style={{ fontFamily: "Rubik, system-ui, sans-serif", color: "#d63a7a" }}
-    >
-      {brand.name}
-    </span>
+      role="img"
+      aria-label={brand.name}
+      className={cn("block", className)}
+      style={{
+        aspectRatio: LOGO_RATIO,
+        backgroundColor: brand.colors.primary,
+        WebkitMask: `url(${LOGO_SRC}) center / contain no-repeat`,
+        mask: `url(${LOGO_SRC}) center / contain no-repeat`,
+      }}
+    />
   );
 }
