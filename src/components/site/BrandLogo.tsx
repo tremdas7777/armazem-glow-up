@@ -7,7 +7,8 @@ const LOGO_RATIO = 256 / 53;
 
 /**
  * Logo da loja. `tone="original"` usa o arquivo amarelo (para fundos escuros);
- * `tone="brand"` pinta o mesmo desenho na cor da marca (para fundos claros).
+ * `tone="brand"` pinta o mesmo desenho na cor da marca (para fundos claros);
+ * `tone="white"` pinta de branco (rodapé).
  * Controle o tamanho pela altura (ex.: `h-8`).
  */
 export function BrandLogo({
@@ -15,7 +16,7 @@ export function BrandLogo({
   tone = "brand",
 }: {
   className?: string;
-  tone?: "original" | "brand";
+  tone?: "original" | "brand" | "white";
 }) {
   if (!brand.showLogo) return null;
 
@@ -29,7 +30,7 @@ export function BrandLogo({
       className={cn("block", className)}
       style={{
         aspectRatio: LOGO_RATIO,
-        backgroundColor: brand.colors.primary,
+        backgroundColor: tone === "white" ? "#fff" : brand.colors.primary,
         WebkitMask: `url(${LOGO_SRC}) center / contain no-repeat`,
         mask: `url(${LOGO_SRC}) center / contain no-repeat`,
       }}

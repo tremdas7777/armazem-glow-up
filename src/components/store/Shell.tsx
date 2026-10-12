@@ -135,7 +135,7 @@ function Footer() {
           <div className="footer__brand">
             {brand.showLogo && (
               <Link to="/" className="logo">
-                <BrandLogo tone="original" />
+                <BrandLogo tone="white" className="h-11" />
               </Link>
             )}
             <p style={{ maxWidth: "34ch", lineHeight: 1.6, margin: "14px 0 0" }}>
