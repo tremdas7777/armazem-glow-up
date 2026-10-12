@@ -471,10 +471,12 @@ html { scroll-behavior: smooth; }
 @media (min-width: 1000px) { .store .cat-circles { grid-auto-flow: row; grid-template-columns: repeat(9, 1fr); grid-auto-columns: auto; overflow: visible; } }
 .store .cat-circle { text-align: center; scroll-snap-align: start; }
 .store .cat-circle__img {
-  aspect-ratio: 1; border-radius: 50%; background: var(--cream); display: grid; place-items: center; margin-bottom: 10px;
+  aspect-ratio: 1; border-radius: 50%; background: var(--cream); display: grid; place-items: center; margin-bottom: 10px; overflow: hidden;
   border: 3px solid transparent; transition: border-color .2s, transform .2s, background .2s;
 }
 .store .cat-circle__img svg { width: 76%; }
+.store .cat-circle__photo { width: 82%; height: 82%; object-fit: contain; mix-blend-mode: multiply; transition: transform .25s; }
+.store .cat-circle:hover .cat-circle__photo { transform: scale(1.06) rotate(-4deg); }
 .store .cat-circle:hover .cat-circle__img { border-color: var(--pink); transform: translateY(-3px); background: var(--pink-soft); }
 .store .cat-circle strong { display: block; font-size: 13px; font-weight: 700; color: var(--plum); }
 .store .cat-circle small { font-size: 11px; color: var(--muted); }

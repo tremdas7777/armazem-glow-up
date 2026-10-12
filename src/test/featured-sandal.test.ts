@@ -21,14 +21,22 @@ describe("requested Moleca sandal", () => {
     expect(bestsellerProducts()[0]?.id).toBe(SANDAL_ID);
   });
 
-  it("includes two sneakers in owner-selected bestsellers", () => {
+  it("includes four sneakers in owner-selected bestsellers", () => {
     expect(bestsellerProducts().filter((p) => p.categoria === "tenis").map((p) => p.id)).toEqual([
-      "m5667-802", "m5835-100",
+      "m5667-802", "m5796-118", "m5835-100", "m5835-210",
     ]);
   });
 
-  it("includes the selected bag in bestsellers", () => {
-    expect(bestsellerProducts().find((p) => p.id === "m50042-13")?.categoria).toBe("bolsas");
+  it("includes the selected bags in bestsellers", () => {
+    expect(bestsellerProducts().filter((p) => p.categoria === "bolsas").map((p) => p.id)).toEqual([
+      "m50042-13", "m50065-4", "m50007-1",
+    ]);
+  });
+
+  it("includes three boots in bestsellers", () => {
+    expect(bestsellerProducts().filter((p) => p.categoria === "botas").map((p) => p.id)).toEqual([
+      "m5352-100", "m5344-202", "m5346-107",
+    ]);
   });
 
   it("keeps every uploaded color in order-compatible size selections", () => {

@@ -29,6 +29,21 @@ export const Route = createFileRoute("/")({
 
 const count = (slug: string) => PRODUCTS.filter((p) => p.categoria === slug).length;
 
+/** Foto de capa de cada bolinha de categoria (produto inteiro, sem etiquetas na foto). */
+const CATEGORY_COVERS: Record<string, string> = {
+  sandalias: "m5596-204",
+  tenis: "m5796-118",
+  botas: "m5352-100",
+  sapatilhas: "m5829-320",
+  tamancos: "m5560-118",
+  sapatos: "m5156-892",
+  "sapato-casual": "m5848-100",
+  bolsas: "m50007-1",
+};
+const categoryCover = (slug: string) =>
+  PRODUCTS.find((p) => p.id === CATEGORY_COVERS[slug] && p.imagens[0]) ??
+  PRODUCTS.find((p) => p.categoria === slug && p.imagens[0]);
+
 /** Lançamentos intercalando as categorias, para a vitrine não ficar só com um tipo. */
 function newArrivals(): Produto[] {
   const groups = CATEGORIAS.map((c) => PRODUCTS.filter((p) => p.novo && p.categoria === c.slug));
@@ -187,12 +202,12 @@ function Index() {
           </div>
           <div className="cat-circles">
             {cats.map((c) => {
-              const cover = PRODUCTS.find((p) => p.categoria === c.slug && p.imagens[0]);
+              const cover = categoryCover(c.slug);
               return (
                 <Link key={c.slug} className="cat-circle" to="/colecao" search={{ cat: c.slug }}>
                   <div className="cat-circle__img">
                     {cover ? (
-                      <img src={cover.imagens[0]} alt="" style={{ borderRadius: "50%", width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img className="cat-circle__photo" src={cover.imagens[0]} alt="" loading="lazy" />
                     ) : (
                       <ProductArt />
                     )}
