@@ -57,9 +57,9 @@ function Header() {
           <button className="icon-btn menu-toggle" aria-label="Abrir menu" onClick={() => setMenu(true)}>
             <Icon d="M3 6h18M3 12h18M3 18h18" />
           </button>
-          <Link to="/" className="logo">
+          {brand.showLogo && <Link to="/" className="logo">
             {brand.name}
-          </Link>
+          </Link>}
           <nav className={`nav ${menu ? "open" : ""}`}>
             {navLink("/", "Home")}
             {navLink("/colecao", "Lançamentos", { novo: "1" })}
@@ -130,9 +130,9 @@ function Footer() {
       <div className="container">
         <div className="footer__grid">
           <div className="footer__brand">
-            <Link to="/" className="logo">
+            {brand.showLogo && <Link to="/" className="logo">
               {brand.name}
-            </Link>
+            </Link>}
             <p style={{ maxWidth: "34ch", lineHeight: 1.6, margin: "14px 0 0" }}>
               {brand.tagline}. Calçados de várias marcas, com conforto e estilo para todos os passos.
             </p>
