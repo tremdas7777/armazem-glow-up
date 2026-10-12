@@ -9,7 +9,11 @@ import { brand } from "@/lib/brand";
 import { useCart, type CartLine } from "@/lib/cart";
 import { isValidCpf } from "@/lib/cpf";
 import { activeBumps, bumpPrice } from "@/lib/order-bumps";
-import { fretes as fretesDisponiveis, missingForFreeShipping, type FreteId } from "@/lib/store-settings";
+import {
+  fretes as fretesDisponiveis,
+  missingForFreeShipping,
+  type FreteId,
+} from "@/lib/store-settings";
 import { savePixSession } from "@/lib/pix-session";
 import { getSessionId, getStoredUtms } from "@/lib/tracking";
 import { trackCheckoutStep, type CheckoutStep } from "@/lib/checkout-tracking.functions";
@@ -25,7 +29,7 @@ import {
   GreenButton,
   PixIcon,
 } from "@/components/checkout/parts";
-import { SummaryDesktop, SummaryMobile } from "@/components/checkout/Summary";
+import { SummaryDesktop, SummaryMobile, type SummaryEdit } from "@/components/checkout/Summary";
 import { OrderBumps, type BumpPicks } from "@/components/checkout/OrderBumps";
 
 export const Route = createFileRoute("/checkout")({
@@ -167,6 +171,9 @@ function Page() {
   });
   const bumpMissingSize = Object.values(bumpPicks).some((b) => b.on && !b.tamanho);
   const orderLines = [...lines, ...bumpLines];
+  // Quantidade e remoção no resumo, só para itens da sacola e antes de gerar o Pix.
+  const cartIndex = (l: CartLine) =>
+    cart.items.findIndex((it) => it.id === l.id && it.tamanho === l.tamanho);
   const orderSubtotal = Math.round(orderLines.reduce((s, l) => s + l.total, 0) * 100) / 100;
 
   const fretes = fretesDisponiveis(orderSubtotal);
@@ -589,6 +596,21 @@ function Page() {
       </Card>
     );
 
+  const summaryEdit: SummaryEdit | undefined =
+    mutation.isPending || mutation.isSuccess
+      ? undefined
+      : {
+          canEdit: (l) => cartIndex(l) >= 0,
+          setQty: (l, qtd) => {
+            const i = cartIndex(l);
+            if (i >= 0) cart.setQty(i, qtd);
+          },
+          remove: (l) => {
+            const i = cartIndex(l);
+            if (i >= 0) cart.remove(i);
+          },
+        };
+
   if (!lines.length && !mutation.isPending && !mutation.isSuccess) {
     return (
       <div className="ck flex min-h-screen flex-col text-foreground">
@@ -620,14 +642,24 @@ function Page() {
           <BrandLogo className="h-8 md:h-10" />
         </Link>
       </header>
-      <SummaryMobile lines={orderLines} subtotal={orderSubtotal} frete={freteValue} />
+      <SummaryMobile
+        lines={orderLines}
+        subtotal={orderSubtotal}
+        frete={freteValue}
+        edit={summaryEdit}
+      />
       <main className="mx-auto grid w-full max-w-[1160px] gap-4 px-3 pb-24 pt-2 md:px-4 lg:grid-cols-3 lg:gap-4">
         <div className="space-y-5">
           {idCard}
           {addrCard}
         </div>
         <div>{payCard}</div>
-        <SummaryDesktop lines={orderLines} subtotal={orderSubtotal} frete={freteValue} />
+        <SummaryDesktop
+          lines={orderLines}
+          subtotal={orderSubtotal}
+          frete={freteValue}
+          edit={summaryEdit}
+        />
       </main>
       <CheckoutFooter />
     </div>

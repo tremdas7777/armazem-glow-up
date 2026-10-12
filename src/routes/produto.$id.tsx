@@ -99,7 +99,7 @@ function ProductPage() {
                     const option = p.cores?.find((c) => c.imagem === i);
                     if (option) setColor(option.nome);
                   }}>
-                    <img src={src} alt="" />
+                    <img src={src} alt="" loading="lazy" decoding="async" />
                   </Button>
                 ))}
               </div>
@@ -125,7 +125,7 @@ function ProductPage() {
                     <Button variant="outline" key={c.nome} title={c.nome} aria-label={`Cor ${c.nome}`} aria-pressed={color === c.nome}
                       className={`thumb h-16 w-16 p-1 ${color === c.nome ? "active" : ""}`}
                       onClick={() => { setColor(c.nome); setImg(c.imagem); }}>
-                      <img className="h-full w-full object-contain" src={p.imagens[c.imagem]} alt={c.nome} />
+                      <img className="h-full w-full object-contain" src={p.imagens[c.imagem]} alt={c.nome} loading="lazy" decoding="async" />
                     </Button>
                   ))}
                 </div>
