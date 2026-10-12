@@ -15,3 +15,4 @@
 - Keep external market evidence separate from catalog and store sales flags; share the reference-based selection between homepage and collection so researched merchandising never changes checkout or implies internal sales counts.
 - Keep owner-selected bestseller placements separate from market evidence; use a shared selector so both storefront views match without fabricated research.
 - Multi-color featured products use one catalog ID and encode the selected color in existing size-option strings, so cart and order validation preserve color without changing payment contracts.
+- Control logo visibility through the shared brand setting across storefront and checkout, so temporary hiding stays consistent without removing store identity content.
