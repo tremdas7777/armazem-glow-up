@@ -1,6 +1,7 @@
 /** Dados da loja Armazem Feminino (loja multimarcas de calçados). */
 export const brand = {
   name: "Armazem Feminino",
+  showLogo: false,
   tagline: "Calçados com personalidade",
   /** Dados da empresa: aparecem no rodapé, no checkout e nas políticas. */
   company: {
