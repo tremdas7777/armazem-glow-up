@@ -17,6 +17,20 @@ describe("requested Moleca sandal", () => {
     expect(bestsellerProducts().filter((p) => p.id === SANDAL_ID)).toHaveLength(1);
   });
 
+  it("keeps the papete first in the bestselling selection", () => {
+    expect(bestsellerProducts()[0]?.id).toBe(SANDAL_ID);
+  });
+
+  it("includes two sneakers in owner-selected bestsellers", () => {
+    expect(bestsellerProducts().filter((p) => p.categoria === "tenis").map((p) => p.id)).toEqual([
+      "m5667-802", "m5835-100",
+    ]);
+  });
+
+  it("includes the selected bag in bestsellers", () => {
+    expect(bestsellerProducts().find((p) => p.id === "m50042-13")?.categoria).toBe("bolsas");
+  });
+
   it("keeps every uploaded color in order-compatible size selections", () => {
     expect(FEATURED_SANDAL.cores?.map((c) => c.nome)).toEqual([
       "Preto", "Azul", "Off-white cobre", "Nude", "Pink", "Off-white", "Nude dourado",

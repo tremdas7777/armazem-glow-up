@@ -5,8 +5,13 @@ import { selectMarketProducts } from "@/lib/market-selection";
 
 /** Explicit owner placement stays separate from externally verified market evidence. */
 export function bestsellerProducts() {
+  const ownerIds = [SANDAL_ID, "m5667-802", "m5835-100", "m50042-13"];
+  const ownerProducts = ownerIds.flatMap((id) => {
+    const product = PRODUCTS.find((p) => p.id === id);
+    return product ? [product] : [];
+  });
   return [
-    ...PRODUCTS.filter((p) => p.id === SANDAL_ID),
-    ...selectMarketProducts(PRODUCTS, MARKET_EVIDENCE).filter((p) => p.id !== SANDAL_ID),
+    ...ownerProducts,
+    ...selectMarketProducts(PRODUCTS, MARKET_EVIDENCE).filter((p) => !ownerIds.includes(p.id)),
   ];
 }
