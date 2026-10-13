@@ -58,7 +58,7 @@ function Header() {
           <button className="icon-btn menu-toggle" aria-label="Abrir menu" onClick={() => setMenu(true)}>
             <Icon d="M3 6h18M3 12h18M3 18h18" />
           </button>
-          {brand.showLogo && (
+          {brand.showLogo && !store.hideLogos && (
             <Link to="/" className="logo">
               <BrandLogo tone="original" />
             </Link>
@@ -133,7 +133,7 @@ function Footer() {
       <div className="container">
         <div className="footer__grid">
           <div className="footer__brand">
-            {brand.showLogo && (
+            {brand.showLogo && !store.hideLogos && (
               <Link to="/" className="logo">
                 <BrandLogo tone="white" className="h-11" />
               </Link>

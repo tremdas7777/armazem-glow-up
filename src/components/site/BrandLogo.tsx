@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { brand } from "@/lib/brand";
+import { store } from "@/lib/store-settings";
 
 export const LOGO_SRC = "/logo-moleca.png";
 /** Proporção do arquivo do logo (largura / altura). */
@@ -18,7 +19,7 @@ export function BrandLogo({
   className?: string;
   tone?: "original" | "brand" | "white";
 }) {
-  if (!brand.showLogo) return null;
+  if (!brand.showLogo || store.hideLogos) return null;
 
   if (tone === "original") {
     return <img src={LOGO_SRC} alt={brand.name} className={cn("block w-auto", className)} />;
