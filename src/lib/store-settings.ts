@@ -12,6 +12,8 @@ export const STORE_SETTING_KEY = "store";
 const money = z.number().finite().min(0).max(100_000);
 
 export const storeConfigSchema = z.object({
+  /** Ativado no painel: oculta todas as logos da loja, inclusive no checkout. */
+  hideLogos: z.boolean().default(false),
   /** Desconto aplicado em toda a loja (%). 0 = sem desconto. */
   discountPct: z.number().int().min(0).max(90),
   shipping: z.object({
@@ -33,6 +35,7 @@ export const storeConfigSchema = z.object({
 export type StoreConfig = z.infer<typeof storeConfigSchema>;
 
 export const DEFAULT_STORE: StoreConfig = {
+  hideLogos: false,
   discountPct: 50,
   shipping: {
     padrao: { eta: "5 a 8 dias úteis", price: 14.9, freeFrom: 0 },

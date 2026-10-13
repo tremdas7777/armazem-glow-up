@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useRouter } from "@tanstack/react-router";
 import { Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { PRODUCTS } from "@/lib/catalog";
 import { getStoreConfig, resetStoreConfig, saveStoreConfig } from "@/lib/store-settings.functions";
 import { brl, storeConfigSchema, type StoreConfig } from "@/lib/store-settings";
 
 type Draft = {
+  hideLogos: boolean;
   discountPct: string;
   padraoEta: string;
   padraoPrice: string;
@@ -20,6 +23,7 @@ type Draft = {
 };
 
 const toDraft = (c: StoreConfig): Draft => ({
+  hideLogos: c.hideLogos,
   discountPct: String(c.discountPct),
   padraoEta: c.shipping.padrao.eta,
   padraoPrice: String(c.shipping.padrao.price).replace(".", ","),
@@ -33,6 +37,7 @@ const num = (v: string) => Number(v.replace(/\./g, "").replace(",", "."));
 
 /** /admin → Loja: desconto geral e frete. Vale na hora para a loja, o checkout e as cobranças. */
 export function StoreTab({ password }: { password: string }) {
+  const router = useRouter();
   const getFn = useServerFn(getStoreConfig);
   const saveFn = useServerFn(saveStoreConfig);
   const resetFn = useServerFn(resetStoreConfig);
@@ -49,6 +54,7 @@ export function StoreTab({ password }: { password: string }) {
   if (!draft) return <p className="text-sm text-muted-foreground">{msg ?? "Carregando…"}</p>;
 
   const config = {
+    hideLogos: draft.hideLogos,
     discountPct: Math.round(num(draft.discountPct)),
     shipping: {
       padrao: {
@@ -70,6 +76,7 @@ export function StoreTab({ password }: { password: string }) {
     try {
       const c = await saveFn({ data: { password, config: parsed.data } });
       setDraft(toDraft(c));
+      await router.invalidate();
       setMsg("Salvo. A loja já está usando os novos valores.");
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Falhou ao salvar.");
@@ -81,6 +88,7 @@ export function StoreTab({ password }: { password: string }) {
     setBusy(true);
     try {
       setDraft(toDraft(await resetFn({ data: { password } })));
+      await router.invalidate();
       setMsg("Voltou para a configuração padrão.");
     } catch {
       setMsg("Falhou ao restaurar.");
@@ -88,7 +96,7 @@ export function StoreTab({ password }: { password: string }) {
       setBusy(false);
     }
   };
-  const field = (k: keyof Draft, label: string, hint?: string) => (
+  const field = (k: Exclude<keyof Draft, "hideLogos">, label: string, hint?: string) => (
     <label className="flex flex-col gap-1 text-sm">
       <span className="font-medium">{label}</span>
       <Input value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} />
@@ -106,6 +114,17 @@ export function StoreTab({ password }: { password: string }) {
             O servidor relê estes valores antes de cada Pix: o valor cobrado é sempre o daqui.
           </div>
         </div>
+      </div>
+      <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
+        <label htmlFor="hide-moleca-logos" className="text-sm font-medium">
+          Ocultar logos Moleca
+        </label>
+        <Switch
+          id="hide-moleca-logos"
+          checked={draft.hideLogos}
+          disabled={busy}
+          onCheckedChange={(hideLogos) => setDraft({ ...draft, hideLogos })}
+        />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {field(
