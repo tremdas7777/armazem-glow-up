@@ -10,7 +10,12 @@ import {
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { useTrackPageView } from "@/hooks/useTrackPageView";
-import { META_PIXEL_ID, TIKTOK_PIXEL_ID, UTMIFY_PIXEL_ID } from "@/lib/pixels";
+import {
+  META_PIXEL_ID,
+  TIKTOK_PIXEL_ID,
+  UTMIFY_PIXEL_ID,
+  UTMIFY_TIKTOK_PIXEL_ID,
+} from "@/lib/pixels";
 import { useMetaPixel } from "@/hooks/useMetaPixel";
 import { useTiktokPixel } from "@/hooks/useTiktokPixel";
 import { brand } from "@/lib/brand";
@@ -46,6 +51,13 @@ function pixelScripts() {
       // Pixel da UTMify (snippet oficial).
       // Fora do /admin, para as visitas ao painel não entrarem nos dados.
       children: `(function(){if(location.pathname.indexOf("/admin")===0)return;if(document.querySelector('script[src*="cdn.utmify.com.br/scripts/pixel/pixel.js"]'))return;window.pixelId="${UTMIFY_PIXEL_ID}";var a=document.createElement("script");a.setAttribute("async","");a.setAttribute("defer","");a.setAttribute("src","https://cdn.utmify.com.br/scripts/pixel/pixel.js");document.head.appendChild(a);})();`,
+    });
+  if (UTMIFY_TIKTOK_PIXEL_ID)
+    scripts.push({
+      type: "text/javascript",
+      // Pixel TikTok da UTMify (mesmo conteúdo do snippet oficial, sem a ofuscação).
+      // Fora do /admin, para as visitas ao painel não entrarem nos dados.
+      children: `(function(){if(location.pathname.indexOf("/admin")===0)return;if(document.querySelector('script[src*="cdn.utmify.com.br/scripts/pixel/pixel-tiktok.js"]'))return;window.tikTokPixelId="${UTMIFY_TIKTOK_PIXEL_ID}";var a=document.createElement("script");a.setAttribute("async","");a.setAttribute("defer","");a.setAttribute("src","https://cdn.utmify.com.br/scripts/pixel/pixel-tiktok.js");document.head.appendChild(a);})();`,
     });
   return scripts;
 }
