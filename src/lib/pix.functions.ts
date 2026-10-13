@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { brand } from "@/lib/brand";
 import {
   saveOrder,
   getOrder,
@@ -81,7 +80,8 @@ export const createPixCharge = createServerFn({ method: "POST" })
     const charge = await createPix({
       amount: quote.totalCents,
       customer: { name: data.name, email: data.email, phone: data.phone, cpf: data.cpf },
-      description: `Pedido ${brand.name}: ${quote.summary}`.slice(0, 250),
+      // Sem a marca: o gateway recebe só o tipo de produto, referência e tamanho.
+      description: `Pedido: ${quote.gatewaySummary}`.slice(0, 250),
       items: quote.gatewayItems,
       origin: data.origin,
       address: data.address,
@@ -184,7 +184,7 @@ export const createProtecaoCharge = createServerFn({ method: "POST" })
     const charge = await createPix({
       amount: PROTECAO.priceCents,
       customer,
-      description: `${PROTECAO.nome} – ${brand.name}`.slice(0, 250),
+      description: PROTECAO.nome,
       items: [
         { title: PROTECAO.nome, quantity: 1, unitPriceCents: PROTECAO.priceCents, tangible: false },
       ],

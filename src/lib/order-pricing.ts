@@ -1,5 +1,6 @@
 // Cálculo do pedido a partir da sacola. Função pura: o servidor usa para cobrar e o checkout só para
 // exibir. Preço sempre do catálogo + configuração da loja, nunca o que o navegador mandou.
+import { brand } from "@/lib/brand";
 import { getProduct, itemLabel } from "@/lib/catalog";
 import { fretes, priceOf, type Frete, type FreteId } from "@/lib/store-settings";
 import type { GatewayItem } from "@/lib/gateway-items";
@@ -40,11 +41,24 @@ export type OrderQuote = {
   gatewayItems: GatewayItem[];
   /** Resumo legível ("2x Sandália Moleca Ref. 5667.802 (tam. 37) + ..."). */
   summary: string;
+  /** Mesmo resumo, sem marca nem nome da loja (é o que vai para o gateway). */
+  gatewaySummary: string;
 };
 
 export class OrderError extends Error {}
 
 const cents = (v: number) => Math.round(v * 100);
+
+/** Nome do item no gateway: o mesmo do pedido, sem a marca do produto nem o nome da loja. */
+function gatewayTitle(l: OrderLine) {
+  let t = l.label;
+  for (const name of [l.marca, brand.name]) {
+    if (!name) continue;
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    t = t.replace(new RegExp(`\\s*\\b${escaped}\\b`, "gi"), "");
+  }
+  return t.replace(/\s+/g, " ").trim();
+}
 
 /**
  * Preço por quantidade (qty-promo.ts): as linhas da papete (fora do order bump) recebem o valor da
@@ -109,7 +123,7 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
   if (!frete) throw new OrderError("Opção de frete indisponível para este pedido.");
 
   const gatewayItems: GatewayItem[] = lines.map((l) => ({
-    title: l.label.slice(0, 120),
+    title: gatewayTitle(l).slice(0, 120),
     quantity: l.qtd,
     unitPriceCents: cents(l.unit),
     tangible: true,
@@ -129,5 +143,6 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
     totalCents: subtotalCents + cents(frete.price),
     gatewayItems,
     summary: lines.map((l) => `${l.qtd}x ${l.label}`).join(" + "),
+    gatewaySummary: lines.map((l) => `${l.qtd}x ${gatewayTitle(l)}`).join(" + "),
   };
 }
