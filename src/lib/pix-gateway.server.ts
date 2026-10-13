@@ -1,7 +1,8 @@
-// Gateway do Pix escolhido no /admin: SagacePay (padrão) ou MagicPay. Somente servidor.
+// Gateway do Pix escolhido no /admin: SagacePay (padrão), PixGate ou MagicPay. Somente servidor.
 // A escolha vale para os próximos Pix. Cada pedido guarda no id qual gateway gerou o Pix
-// (MagicPay "mp_", SagacePay sem prefixo), então a consulta de status e o webhook continuam no
-// gateway certo mesmo depois de uma troca.
+// (PixGate "pg_", MagicPay "mp_", SagacePay sem prefixo), então a consulta de status e o webhook
+// continuam no gateway certo mesmo depois de uma troca.
+import { getPixgateKey, pixgateCashin, pixgateStatus } from "@/lib/pixgate.server";
 import {
   getMagicPayKeys,
   magicpayCashin,
@@ -11,14 +12,18 @@ import {
 import { getSagacePayKey, sagaceCashin, sagaceStatus } from "@/lib/sagacepay.server";
 import { itemsTotalCents, type GatewayItem } from "@/lib/gateway-items";
 
-export const PIX_GATEWAYS = ["sagacepay", "magicpay"] as const;
+export const PIX_GATEWAYS = ["sagacepay", "pixgate", "magicpay"] as const;
 export type PixGateway = (typeof PIX_GATEWAYS)[number];
 export const PIX_GATEWAY_LABEL: Record<PixGateway, string> = {
   sagacepay: "SagacePay",
+  pixgate: "PixGate",
   magicpay: "MagicPay",
 };
 
-/** Pedidos da MagicPay são guardados com este prefixo (os da SagacePay ficam sem prefixo). */
+/** Pedidos da PixGate são guardados com este prefixo (os da SagacePay ficam sem prefixo). */
+export const PIXGATE_ORDER_PREFIX = "pg_";
+export const isPixgateOrderId = (id: string) => id.startsWith(PIXGATE_ORDER_PREFIX);
+/** Pedidos da MagicPay são guardados com este prefixo. */
 export const MAGICPAY_ORDER_PREFIX = "mp_";
 export const isMagicpayOrderId = (id: string) => id.startsWith(MAGICPAY_ORDER_PREFIX);
 
@@ -49,16 +54,17 @@ async function savedChoice(): Promise<PixGateway | null> {
 
 /** Quais gateways têm chave cadastrada (painel ou secret do Lovable). */
 async function configured(): Promise<Record<PixGateway, boolean>> {
-  const [sagacepay, magicpay] = await Promise.all([
+  const [sagacepay, pixgate, magicpay] = await Promise.all([
     getSagacePayKey().catch(() => null),
+    getPixgateKey().catch(() => null),
     getMagicPayKeys().catch(() => null),
   ]);
-  return { sagacepay: !!sagacepay, magicpay: !!magicpay };
+  return { sagacepay: !!sagacepay, pixgate: !!pixgate, magicpay: !!magicpay };
 }
 
 /**
  * Gateway que gera os próximos Pix: o escolhido no /admin (padrão: SagacePay). Se o escolhido
- * estiver sem chave e o outro tiver, usa o outro para o checkout não parar.
+ * estiver sem chave e outro tiver, usa o outro para o checkout não parar.
  */
 export async function getPixGatewayState(): Promise<{
   selected: PixGateway;
@@ -94,7 +100,7 @@ export async function createPix(o: {
   description: string;
   items: GatewayItem[];
   origin: string;
-  /** Endereço por partes (a MagicPay pede; a SagacePay ignora). */
+  /** Endereço por partes (a MagicPay pede; os outros ignoram). */
   address?: MagicPayAddress | undefined;
   ip?: string | null | undefined;
 }): Promise<{ id: string; qrcode: string; status: string }> {
@@ -103,6 +109,16 @@ export async function createPix(o: {
   }
   const { active } = await getPixGatewayState();
   const webhook = `${new URL(o.origin).origin}/api/public/pix-webhook`;
+  if (active === "pixgate") {
+    // A PixGate não recebe itens: só o resumo do pedido.
+    const tx = await pixgateCashin({
+      amountCents: o.amount,
+      customer: o.customer,
+      description: o.description,
+      postbackUrl: `${webhook}?gw=pg`,
+    });
+    return { ...tx, id: `${PIXGATE_ORDER_PREFIX}${tx.id}` };
+  }
   if (active === "magicpay") {
     const tx = await magicpayCashin({
       amountCents: o.amount,
@@ -129,6 +145,7 @@ export async function createPix(o: {
 
 /** Status real de um pedido no gateway que gerou o Pix. Valor em centavos. */
 export async function fetchPixStatus(id: string): Promise<{ status: string; amount: number }> {
+  if (isPixgateOrderId(id)) return pixgateStatus(id.slice(PIXGATE_ORDER_PREFIX.length));
   if (isMagicpayOrderId(id)) return magicpayStatus(id.slice(MAGICPAY_ORDER_PREFIX.length));
   return sagaceStatus(id);
 }

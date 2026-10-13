@@ -13,6 +13,12 @@ import {
   saveMagicPayKeys,
   testMagicPayKeys,
 } from "./magicpay.server";
+import {
+  deletePixgateKey,
+  getPixgateKeySource,
+  savePixgateKey,
+  testPixgateKey,
+} from "./pixgate.server";
 
 const pw = z.object({ password: z.string().min(1).max(200) });
 const gw = z.object({ gateway: z.enum(PIX_GATEWAYS) });
@@ -33,6 +39,12 @@ const KEYS = {
     remove: deleteSagacePayKey,
     test: testSagacePayKey,
   },
+  pixgate: {
+    source: getPixgateKeySource,
+    save: savePixgateKey,
+    remove: deletePixgateKey,
+    test: testPixgateKey,
+  },
   magicpay: {
     source: getMagicPayKeySource,
     save: async (_key: string) => {
@@ -48,15 +60,17 @@ export const getPixGatewayStatus = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => pw.parse(d))
   .handler(async ({ data }) => {
     assertAdmin(data.password);
-    const [state, sagacepay, magicpay] = await Promise.all([
+    const [state, sagacepay, pixgate, magicpay] = await Promise.all([
       getPixGatewayState(),
       KEYS.sagacepay.source(),
+      KEYS.pixgate.source(),
       KEYS.magicpay.source(),
     ]);
     return {
       ...state,
       keys: {
         sagacepay: { key: sagacepay.key ? mask(sagacepay.key) : null, source: sagacepay.source },
+        pixgate: { key: pixgate.key ? mask(pixgate.key) : null, source: pixgate.source },
         magicpay: { key: magicpay.key ? mask(magicpay.key) : null, source: magicpay.source },
       },
     };

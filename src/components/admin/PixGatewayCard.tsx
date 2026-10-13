@@ -13,7 +13,7 @@ import {
   testGatewayKeyFn,
 } from "@/lib/pix-gateway.functions";
 
-type Gateway = "sagacepay" | "magicpay";
+type Gateway = "sagacepay" | "pixgate" | "magicpay";
 type KeyInfo = { key: string | null; source: "admin" | "secret" | null };
 type Status = {
   selected: Gateway;
@@ -22,19 +22,22 @@ type Status = {
   keys: Record<Gateway, KeyInfo>;
 };
 
-const GATEWAYS: Gateway[] = ["sagacepay", "magicpay"];
+const GATEWAYS: Gateway[] = ["sagacepay", "pixgate", "magicpay"];
 const LABEL: Record<Gateway, string> = {
   sagacepay: "SagacePay",
+  pixgate: "PixGate",
   magicpay: "MagicPay",
 };
-const SECRET: Record<"sagacepay", string> = {
+const SECRET: Record<"sagacepay" | "pixgate", string> = {
   sagacepay: "SAGACEPAY_API_KEY",
+  pixgate: "PIXGATE_API_KEY",
 };
-const PLACEHOLDER: Record<"sagacepay", string> = {
+const PLACEHOLDER: Record<"sagacepay" | "pixgate", string> = {
   sagacepay: "Chave da API SagacePay (sk_live_…)",
+  pixgate: "Chave da API PixGate",
 };
 
-/** Escolha do gateway do Pix (SagacePay ou MagicPay) + chave de cada um. */
+/** Escolha do gateway do Pix (SagacePay, PixGate ou MagicPay) + chave de cada um. */
 export function PixGatewayCard({ password }: { password: string }) {
   const statusFn = useServerFn(getPixGatewayStatus);
   const setFn = useServerFn(setPixGatewayFn);
@@ -115,7 +118,7 @@ export function PixGatewayCard({ password }: { password: string }) {
           <div>
             <div className="font-medium">Gateway do Pix</div>
             <div className="text-xs text-muted-foreground">
-              Escolha quem gera os próximos Pix: SagacePay (padrão) ou MagicPay. A troca
+              Escolha quem gera os próximos Pix: SagacePay (padrão), PixGate ou MagicPay. A troca
               vale na hora; pedidos já gerados continuam sendo confirmados pelo gateway em que foram
               criados.
             </div>
@@ -126,7 +129,7 @@ export function PixGatewayCard({ password }: { password: string }) {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {GATEWAYS.map((g) => (
           <Button
             key={g}
@@ -148,7 +151,7 @@ export function PixGatewayCard({ password }: { password: string }) {
         </p>
       )}
 
-      {(["sagacepay"] as const).map((g) => (
+      {(["sagacepay", "pixgate"] as const).map((g) => (
         <KeySection
           key={g}
           gateway={g}
@@ -272,7 +275,7 @@ function KeySection({
   onDelete,
   onTest,
 }: {
-  gateway: "sagacepay";
+  gateway: "sagacepay" | "pixgate";
   info: KeyInfo | null;
   loading: boolean;
   busy: string | null;
