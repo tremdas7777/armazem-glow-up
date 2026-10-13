@@ -184,7 +184,8 @@ function Index() {
         </div>
         <div className="container campaign-banner__caption">
           <div>
-            <h1>{brand.name}</h1>
+            {/* Some junto com as logos (admin → "Ocultar logos Moleca"); fica só para leitores de tela/SEO. */}
+            <h1 className={brand.showLogo && !store.hideLogos ? undefined : "sr-only"}>{brand.name}</h1>
             {store.discountPct > 0 && (
               <p>
                 <strong>{store.discountPct}% OFF em toda a loja</strong>
