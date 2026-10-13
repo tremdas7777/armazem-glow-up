@@ -114,7 +114,8 @@ export function quoteOrder(items: readonly OrderItemInput[], freteId: FreteId): 
   const lines = applyQtyPromo(baseLines);
   const subtotalCents = lines.reduce((s, l) => s + cents(l.unit) * l.qtd, 0);
   const subtotal = subtotalCents / 100;
-  // "gratis" e "padrao" são a mesma opção: o valor do pedido decide se o frete sai de graça.
+  // "gratis" e "padrao" são a opção padrão (a primeira): o valor do pedido decide se o frete sai de
+  // graça; abaixo do mínimo e sem Frete Padrão pago, vira o Frete Rápido (o checkout mostra igual).
   const options = fretes(subtotal);
   const frete =
     freteId === "gratis" || freteId === "padrao"

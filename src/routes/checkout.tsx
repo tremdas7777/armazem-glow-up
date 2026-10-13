@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { BrandLogo } from "@/components/site/BrandLogo";
 import { createPixCharge } from "@/lib/pix.functions";
 import { brand } from "@/lib/brand";
@@ -12,6 +12,7 @@ import { activeBumps, bumpPrice, pickedProduct } from "@/lib/order-bumps";
 import {
   fretes as fretesDisponiveis,
   missingForFreeShipping,
+  store,
   type FreteId,
 } from "@/lib/store-settings";
 import { savePixSession } from "@/lib/pix-session";
@@ -491,9 +492,22 @@ function Page() {
           />
           <p className="pt-2 text-base font-medium">Escolha o frete:</p>
           {faltaFreteGratis > 0 && (
-            <p className="text-[12px] text-muted-foreground">
-              Faltam <strong>{brl(faltaFreteGratis)}</strong> para ganhar frete grátis.
-            </p>
+            // Frete grátis travado até o pedido chegar ao valor mínimo.
+            <div
+              aria-disabled
+              className="flex w-full cursor-not-allowed items-center gap-4 rounded-lg border border-dashed border-border px-4 py-5 opacity-60"
+            >
+              <Lock className="h-[18px] w-[18px] shrink-0 text-muted-foreground" aria-hidden />
+              <span className="flex-1">
+                <span className="block text-[13px] font-medium">Frete Grátis</span>
+                <span className="text-[11px] text-muted-foreground">
+                  Faltam <strong>{brl(faltaFreteGratis)}</strong> para liberar
+                </span>
+              </span>
+              <span className="text-[13px] font-semibold">
+                Acima de {brl(store.shipping.padrao.freeFrom)}
+              </span>
+            </div>
           )}
           {fretes.map(({ id: v, name: t, eta: d, price }) => {
             const p = price ? brl(price) : "Grátis";

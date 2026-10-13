@@ -76,15 +76,19 @@ export const missingForFreeShipping = (subtotal: number) =>
   Math.max(0, Math.round((store.shipping.padrao.freeFrom - subtotal) * 100) / 100);
 
 /**
- * Opções de frete para o subtotal: Frete Grátis a partir do valor mínimo (abaixo, Frete Padrão
- * pago), ou Rápido e Express pagos para chegar antes. A primeira opção é sempre a padrão.
+ * Opções de frete para o subtotal: Frete Grátis a partir do valor mínimo; abaixo dele, o grátis
+ * fica travado e entra o Frete Padrão pago (sem preço cadastrado, não há Frete Padrão e sobram só
+ * Rápido e Express). A primeira opção é sempre a padrão.
  */
 export function fretes(subtotal: number): Frete[] {
   const { eta, price } = store.shipping.padrao;
+  const base: Frete[] = hasFreeShipping(subtotal)
+    ? [{ id: "gratis", name: "Frete Grátis", eta, price: 0 }]
+    : price > 0
+      ? [{ id: "padrao", name: "Frete Padrão", eta, price }]
+      : [];
   return [
-    hasFreeShipping(subtotal)
-      ? { id: "gratis", name: "Frete Grátis", eta, price: 0 }
-      : { id: "padrao", name: "Frete Padrão", eta, price },
+    ...base,
     {
       id: "rapido",
       name: "Frete Rápido",

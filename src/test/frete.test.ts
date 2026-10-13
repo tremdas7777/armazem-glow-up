@@ -68,6 +68,28 @@ describe("pedido da sacola", () => {
     expect(quoteOrder([{ id: barato.id, tamanho: "37", qtd }], "gratis").frete.price).toBe(0);
   });
 
+  it("abaixo do mínimo com Frete Padrão a R$ 0: grátis travado, sobra só frete pago", () => {
+    applyStore({
+      discountPct: 0,
+      shipping: {
+        ...DEFAULT_STORE.shipping,
+        padrao: { ...DEFAULT_STORE.shipping.padrao, price: 0, freeFrom: 99 },
+      },
+    });
+    const barato = PRODUCTS.find((p) => p.preco < 99 && p.tamanhos.includes("37"))!;
+    for (const id of ["gratis", "padrao"] as const) {
+      const q = quoteOrder([{ id: barato.id, tamanho: "37", qtd: 1 }], id);
+      expect(q.frete).toMatchObject({ id: "rapido", price: 19.9 });
+      expect(q.totalCents).toBe(Math.round(barato.preco * 100) + 1990);
+      expect(itemsTotalCents(q.gatewayItems)).toBe(q.totalCents);
+    }
+    const qtd = Math.ceil(99 / barato.preco);
+    expect(quoteOrder([{ id: barato.id, tamanho: "37", qtd }], "gratis").frete).toMatchObject({
+      id: "gratis",
+      price: 0,
+    });
+  });
+
   it("configuração salva antes do frete mínimo continua válida, com frete grátis para todos", () => {
     applyStore({
       discountPct: 30,
