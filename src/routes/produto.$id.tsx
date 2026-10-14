@@ -172,7 +172,7 @@ function ProductPage() {
               {p.marca} · REF. {p.ref}
             </div>
             <h1>{p.nome}</h1>
-            <Price p={p} big />
+            <Price p={p} big qty={qty} />
             {isQtyPromo(p.id) && (
               <div className="qty-promo" aria-label="Leve mais, pague menos">
                 <div className="opt-label">

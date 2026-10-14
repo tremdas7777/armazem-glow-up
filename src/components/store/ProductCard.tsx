@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import type { Produto } from "@/lib/catalog";
 import { brl, priceOf } from "@/lib/store-settings";
+import { isQtyPromo, promoTotalCents } from "@/lib/qty-promo";
 
 const COLORS: Record<string, string> = {
   caramelo: "#c98a52",
   preto: "#2b1a24",
   branco: "#f4efe9",
-  "café": "#6b3e26",
+  café: "#6b3e26",
   nude: "#e3b9a0",
   rosa: "#e57aa5",
   "off-white": "#efe6da",
@@ -34,13 +35,17 @@ export function ProductImage({ p, index = 0 }: { p: Produto; index?: number }) {
   return src ? <img src={src} alt={p.nome} loading="lazy" /> : <ProductArt cor={p.cor} />;
 }
 
-export function Price({ p, big = false }: { p: Produto; big?: boolean }) {
-  const { price, compareAt } = priceOf(p);
+/** Preço do produto; na papete (promoção por quantidade), o total dos `qty` pares escolhidos. */
+export function Price({ p, big = false, qty = 1 }: { p: Produto; big?: boolean; qty?: number }) {
+  const unit = priceOf(p);
+  const promo = isQtyPromo(p.id);
+  const price = promo ? promoTotalCents(qty) / 100 : unit.price;
+  const compareAt = unit.compareAt && promo ? unit.compareAt * qty : unit.compareAt;
   return (
     <div className={big ? "pdp__price" : "card__price"}>
-      {compareAt && <span className="price-old">{brl(compareAt)}</span>}
+      {compareAt && compareAt > price && <span className="price-old">{brl(compareAt)}</span>}
       <span className="price">{brl(price)}</span>
-      <span className="installments">no Pix</span>
+      <span className="installments">{promo && qty > 1 ? `${qty} pares no Pix` : "no Pix"}</span>
     </div>
   );
 }
