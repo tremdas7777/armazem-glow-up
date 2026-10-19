@@ -27,12 +27,12 @@ export const Route = createFileRoute("/produto/$id")({
         { title },
         {
           name: "description",
-          content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}`,
+          content: `${p.nome}${p.marca ? ` ${p.marca}` : ""}, referência ${p.ref}. ${p.descricao}`,
         },
         { property: "og:title", content: title },
         {
           property: "og:description",
-          content: `${p.nome} ${p.marca}, referência ${p.ref}. ${p.descricao}`,
+          content: `${p.nome}${p.marca ? ` ${p.marca}` : ""}, referência ${p.ref}. ${p.descricao}`,
         },
         { property: "og:type", content: "product" },
         { name: "twitter:card", content: "summary_large_image" },
@@ -169,7 +169,7 @@ function ProductPage() {
           </div>
           <div>
             <div className="pdp__ref">
-              {p.marca} · REF. {p.ref}
+              {p.marca ? `${p.marca} · REF. ${p.ref}` : `REF. ${p.ref}`}
             </div>
             <h1>{p.nome}</h1>
             <Price p={p} big qty={qty} />
@@ -372,10 +372,12 @@ function ProductPage() {
                 <summary>Características</summary>
                 <table>
                   <tbody>
-                    <tr>
-                      <td>Marca</td>
-                      <td>{p.marca}</td>
-                    </tr>
+                    {p.marca ? (
+                      <tr>
+                        <td>Marca</td>
+                        <td>{p.marca}</td>
+                      </tr>
+                    ) : null}
                     <tr>
                       <td>Referência</td>
                       <td>{p.ref}</td>

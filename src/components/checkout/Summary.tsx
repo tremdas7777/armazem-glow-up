@@ -65,7 +65,7 @@ function Lines({ lines, edit }: { lines: CartLine[]; edit?: SummaryEdit }) {
           <div className="min-w-0 flex-1 text-[13px]">
             <p className="font-medium leading-snug">{l.product.nome}</p>
             <p className="text-muted-foreground">
-              {l.product.marca} · Ref. {l.product.ref} · Tam. {l.tamanho}
+              {l.product.marca ? `${l.product.marca} · ` : ""}Ref. {l.product.ref} · Tam. {l.tamanho}
             </p>
             {edit?.canEdit(l) && <QtyControls l={l} edit={edit} />}
           </div>

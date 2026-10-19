@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useRef, useState } from "react";
 import { SiteLayout } from "@/components/site/Layout";
 import { ProductArt, ProductCard } from "@/components/store/ProductCard";
 import { brand } from "@/lib/brand";
@@ -155,10 +154,6 @@ const PERKS = [
 ];
 
 function Index() {
-  const [autoPlayVideo, setAutoPlayVideo] = useState(false);
-  useEffect(() => {
-    setAutoPlayVideo(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
   const cats = categoriesWithProducts();
   const novos = newArrivals();
   const ofertas = PRODUCTS.filter((p) => priceOf(p).off > 0);
@@ -172,29 +167,40 @@ function Index() {
 
   return (
     <SiteLayout>
-      <section className="campaign-banner" aria-label={`Campanha ${brand.name}`}>
-        <div className="campaign-banner__media">
-          <iframe
-            src={`https://www.youtube.com/embed/iDNa9Vke-cY?autoplay=${autoPlayVideo ? "1" : "0"}&mute=1&loop=1&playlist=iDNa9Vke-cY&playsinline=1&rel=0&controls=0&disablekb=1&fs=0&iv_load_policy=3`}
-            title={`${brand.name} — vídeo da campanha`}
-            tabIndex={-1}
-            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
-        </div>
-        <div className="container campaign-banner__caption">
-          <div>
-            {/* Some junto com as logos (admin → "Ocultar logos da loja"); fica só para leitores de tela/SEO. */}
-            <h1 className={brand.showLogo && !store.hideLogos ? undefined : "sr-only"}>{brand.name}</h1>
+      <section className="hero hero--banner" aria-label={`Destaque ${brand.name}`}>
+        <img
+          className="hero__img"
+          src="/assets/hero-banner.jpg"
+          alt=""
+          width={1280}
+          height={720}
+          decoding="async"
+          fetchPriority="high"
+        />
+        <div className="hero__content container">
+          <p className="hero__brand">{brand.name}</p>
+          <h1>
+            {store.discountPct > 0 ? (
+              <>
+                até <em>{store.discountPct}% off</em> na coleção
+              </>
+            ) : (
+              <>
+                calçados com <em>personalidade</em>
+              </>
+            )}
+          </h1>
+          <p>{brand.tagline}. Sandálias, tênis, bolsas e mais — entrega para todo o Brasil.</p>
+          <div className="hero__ctas">
+            <Link className="btn btn--yellow" to="/colecao">
+              Ver coleção
+            </Link>
             {store.discountPct > 0 && (
-              <p>
-                <strong>{store.discountPct}% OFF em toda a loja</strong>
-              </p>
+              <Link className="btn btn--ghost-light" to="/colecao" search={{ oferta: "1" }}>
+                Ver ofertas
+              </Link>
             )}
           </div>
-          <Button asChild className="btn btn--pink">
-            <Link to="/colecao">Ver coleção</Link>
-          </Button>
         </div>
       </section>
 

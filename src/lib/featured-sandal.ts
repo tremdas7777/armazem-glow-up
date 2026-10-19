@@ -17,7 +17,7 @@ export const FEATURED_SANDAL: Produto = {
   // Store SKU, not an unverified manufacturer reference.
   ref: "AF-STRASS",
   nome: "Papete",
-  marca: "Armazém Feminino",
+  marca: "",
   categoria: "sandalias",
   // Existing store-wide 50% discount yields the requested final price of 29.90.
   preco: 59.8,

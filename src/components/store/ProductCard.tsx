@@ -63,7 +63,7 @@ export function ProductCard({ p }: { p: Produto }) {
       </Link>
       <Link to="/produto/$id" params={{ id: p.id }}>
         <div className="card__ref">
-          {p.marca} · REF. {p.ref}
+          {p.marca ? `${p.marca} · REF. ${p.ref}` : `REF. ${p.ref}`}
         </div>
         <h3 className="card__name">{p.nome}</h3>
       </Link>

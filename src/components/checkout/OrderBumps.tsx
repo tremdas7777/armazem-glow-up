@@ -80,7 +80,7 @@ export function OrderBumps({
                   )}
                 </span>
                 <span className="block text-muted-foreground">
-                  {p.marca} · Ref. {p.ref}
+                  {p.marca ? `${p.marca} · ` : ""}Ref. {p.ref}
                 </span>
                 <span className="mt-0.5 block">
                   {compareAt && <s className="mr-1.5 text-muted-foreground">{brl(compareAt)}</s>}

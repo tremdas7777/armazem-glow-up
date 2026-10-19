@@ -14,7 +14,7 @@ export const ESPELHOPORTA_JOIAS: Produto = {
   id: MIRROR_ID,
   ref: "EPJ-360",
   nome: "Espelho Porta Joias 360° com Organizador Interno",
-  marca: "Armazém Feminino",
+  marca: "",
   categoria: "espelhos",
   // Mesmos preços da Miller (R$ 134,90 · de R$ 329,90). Sem desconto geral em cima.
   preco: 134.9,

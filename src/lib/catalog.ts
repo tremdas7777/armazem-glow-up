@@ -43,6 +43,7 @@ export const CATEGORIAS: Categoria[] = [
   { slug: "sapato-casual", nome: "Sapato Casual" },
   { slug: "bolsas", nome: "Bolsas" },
   { slug: "espelhos", nome: "Espelhos" },
+  { slug: "cosmeticos", nome: "Cosméticos" },
 ];
 
 /** Produtos à venda (os inativos não aparecem nem podem ser comprados). */
@@ -56,7 +57,8 @@ export const getProduct = (id: string) => byIdMap.get(id);
 export const categoryName = (slug: string) => CATEGORIAS.find((c) => c.slug === slug)?.nome ?? slug;
 export const categoriesWithProducts = () =>
   CATEGORIAS.filter((c) => PRODUCTS.some((p) => p.categoria === c.slug));
-export const brands = () => [...new Set(PRODUCTS.map((p) => p.marca))].sort((a, b) => a.localeCompare(b));
+export const brands = () =>
+  [...new Set(PRODUCTS.map((p) => p.marca).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 export const brandSlug = (marca: string) =>
   marca
     .normalize("NFD")

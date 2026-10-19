@@ -135,7 +135,7 @@ function Footer() {
           <div className="footer__brand">
             {brand.showLogo && !store.hideLogos && (
               <Link to="/" className="logo">
-                <BrandLogo tone="white" className="h-11" />
+                <BrandLogo tone="original" className="h-11" />
               </Link>
             )}
             <p style={{ maxWidth: "34ch", lineHeight: 1.6, margin: "14px 0 0" }}>
@@ -235,7 +235,8 @@ function CartDrawer() {
                 <div>
                   <h4>{l.product.nome}</h4>
                   <small>
-                    {l.product.marca} · Ref. {l.product.ref} · Tam. {l.tamanho}
+                    {l.product.marca ? `${l.product.marca} · ` : ""}Ref. {l.product.ref} · Tam.{" "}
+                    {l.tamanho}
                   </small>
                   <div className="qty">
                     <button aria-label="Diminuir" onClick={() => cart.setQty(i, l.qtd - 1)}>
