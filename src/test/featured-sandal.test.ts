@@ -6,7 +6,7 @@ import { applyStore, priceOf } from "@/lib/store-settings";
 
 afterEach(() => applyStore(undefined));
 
-describe("requested Moleca sandal", () => {
+describe("requested featured sandal", () => {
   it("costs exactly R$ 29.90 with the existing store discount", () => {
     applyStore(undefined);
     expect(priceOf(FEATURED_SANDAL).price).toBe(29.90);

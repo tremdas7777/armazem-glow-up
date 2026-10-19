@@ -36,9 +36,9 @@ describe("MagicPay como gateway escolhido", () => {
     const pix = await createPix({
       amount: 9990,
       customer: { name: "Ana", email: "a@b.com", phone: "5511999999999", cpf: "529.982.247-25" },
-      description: "Pedido Armazém dos Chinelos: 1x Tênis Moleca Ref. 5667.802 (tam. 36)",
+      description: "Pedido Armazém dos Chinelos: 1x Tênis Ref. 5667.802 (tam. 36)",
       items: [
-        { title: "Tênis Moleca Ref. 5667.802 (tam. 36)", quantity: 1, unitPriceCents: 9990, tangible: true },
+        { title: "Tênis Ref. 5667.802 (tam. 36)", quantity: 1, unitPriceCents: 9990, tangible: true },
       ],
       origin: "https://loja.com.br/checkout",
       address: {
@@ -66,7 +66,7 @@ describe("MagicPay como gateway escolhido", () => {
     expect(body.customer.address.state).toBe("SP");
     expect(body.items).toHaveLength(1);
     expect(body.items[0]).toMatchObject({
-      title: "Tênis Moleca Ref. 5667.802 (tam. 36)",
+      title: "Tênis Ref. 5667.802 (tam. 36)",
       quantity: 1,
       unitPrice: 9990,
       tangible: true,

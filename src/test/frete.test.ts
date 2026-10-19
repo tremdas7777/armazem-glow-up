@@ -166,7 +166,7 @@ describe("pedido da sacola", () => {
 
   it("oferta de coturnos: escolhe 1 dos 4 modelos, com 50% a mais de desconto", () => {
     applyStore({ ...DEFAULT_STORE, discountPct: 50 });
-    const bump = ORDER_BUMPS.find((b) => b.title === "Coturno Moleca")!;
+    const bump = ORDER_BUMPS.find((b) => b.title === "Coturno")!;
     expect(bump.productIds).toHaveLength(4);
     expect(bump.discountPct).toBe(50);
     for (const id of bump.productIds) {

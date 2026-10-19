@@ -39,7 +39,7 @@ export type OrderQuote = {
   totalCents: number;
   /** Itens enviados ao gateway (produtos reais + frete). A soma bate com totalCents. */
   gatewayItems: GatewayItem[];
-  /** Resumo legível ("2x Sandália Moleca Ref. 5667.802 (tam. 37) + ..."). */
+  /** Resumo legível ("2x Sandália Ref. 5667.802 (tam. 37) + ..."). */
   summary: string;
   /** Mesmo resumo, sem marca nem nome da loja (é o que vai para o gateway). */
   gatewaySummary: string;

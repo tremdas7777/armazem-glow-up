@@ -172,11 +172,11 @@ function Index() {
 
   return (
     <SiteLayout>
-      <section className="campaign-banner" aria-label="Campanha Moleca">
+      <section className="campaign-banner" aria-label={`Campanha ${brand.name}`}>
         <div className="campaign-banner__media">
           <iframe
             src={`https://www.youtube.com/embed/iDNa9Vke-cY?autoplay=${autoPlayVideo ? "1" : "0"}&mute=1&loop=1&playlist=iDNa9Vke-cY&playsinline=1&rel=0&controls=0&disablekb=1&fs=0&iv_load_policy=3`}
-            title="Moleca — vídeo da campanha oficial"
+            title={`${brand.name} — vídeo da campanha`}
             tabIndex={-1}
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
             referrerPolicy="strict-origin-when-cross-origin"
@@ -184,7 +184,7 @@ function Index() {
         </div>
         <div className="container campaign-banner__caption">
           <div>
-            {/* Some junto com as logos (admin → "Ocultar logos Moleca"); fica só para leitores de tela/SEO. */}
+            {/* Some junto com as logos (admin → "Ocultar logos da loja"); fica só para leitores de tela/SEO. */}
             <h1 className={brand.showLogo && !store.hideLogos ? undefined : "sr-only"}>{brand.name}</h1>
             {store.discountPct > 0 && (
               <p>

@@ -607,9 +607,8 @@ html { scroll-behavior: smooth; }
 .store .footer .logo { white-space: normal; font-size: clamp(28px, 4vw, 38px); display: inline-block; max-width: 100%; }
 /* Logo em imagem */
 .store .logo { display: inline-flex; align-items: center; flex-shrink: 0; }
-.store .logo img { height: 34px; }
-@media (max-width: 900px) { .store .header .logo img { height: 28px; } }
-.store .footer .logo img { height: 44px; }
+.store .logo { color: inherit; }
+.store .footer .logo { color: #fff; }
 .store .footer__grid > * { min-width: 0; }
 .store .footer li, .store .footer a { overflow-wrap: anywhere; }
 

@@ -116,11 +116,11 @@ export function StoreTab({ password }: { password: string }) {
         </div>
       </div>
       <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
-        <label htmlFor="hide-moleca-logos" className="text-sm font-medium">
-          Ocultar logos Moleca
+        <label htmlFor="hide-store-logos" className="text-sm font-medium">
+          Ocultar logos da loja
         </label>
         <Switch
-          id="hide-moleca-logos"
+          id="hide-store-logos"
           checked={draft.hideLogos}
           disabled={busy}
           onCheckedChange={(hideLogos) => setDraft({ ...draft, hideLogos })}

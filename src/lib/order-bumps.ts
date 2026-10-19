@@ -16,7 +16,7 @@ export const ORDER_BUMPS: readonly OrderBump[] = [
   {
     productIds: ["m5344-202", "m5344-209", "m5344-302", "m5344-308"],
     discountPct: 50,
-    title: "Coturno Moleca",
+    title: "Coturno",
   },
   { productIds: ["m50073-1"], discountPct: 0 },
   { productIds: ["m5832-314"], discountPct: 30 },

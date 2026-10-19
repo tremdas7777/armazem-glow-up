@@ -37,9 +37,9 @@ describe("SagacePay", () => {
         phone: "11999999999",
         cpf: "52998224725",
       },
-      description: "Pedido Armazém dos Chinelos: 1x Sandália Moleca Ref. 5667.802 (tam. 37)",
+      description: "Pedido Armazém dos Chinelos: 1x Sandália Ref. 5667.802 (tam. 37)",
       items: [
-        { title: "Sandália Moleca Ref. 5667.802 (tam. 37)", quantity: 2, unitPriceCents: 3000, tangible: true },
+        { title: "Sandália Ref. 5667.802 (tam. 37)", quantity: 2, unitPriceCents: 3000, tangible: true },
         { title: "Frete Padrão", quantity: 1, unitPriceCents: 490, tangible: false },
       ],
       origin: "https://loja.com.br/checkout",
@@ -57,9 +57,9 @@ describe("SagacePay", () => {
     expect(body.postbackUrl).toBe("https://loja.com.br/api/public/pix-webhook");
     expect(body.externalId).toBe(headers["idempotency-key"]);
     expect(body.expirationInSeconds).toBe(1800);
-    expect(body.description).toContain("Sandália Moleca Ref. 5667.802");
+    expect(body.description).toContain("Sandália Ref. 5667.802");
     expect(body.items).toEqual([
-      { description: "Sandália Moleca Ref. 5667.802 (tam. 37)", quantity: 2, unitPrice: 30 },
+      { description: "Sandália Ref. 5667.802 (tam. 37)", quantity: 2, unitPrice: 30 },
       { description: "Frete Padrão", quantity: 1, unitPrice: 4.9 },
     ]);
   });

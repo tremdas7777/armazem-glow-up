@@ -1,6 +1,6 @@
-/** Dados da loja Moleca (loja multimarcas de calçados). */
+/** Dados da loja Armazém Feminino (loja multimarcas de calçados). */
 export const brand = {
-  name: "Moleca",
+  name: "Armazém Feminino",
   showLogo: true,
   tagline: "Calçados com personalidade",
   /** Dados da empresa: aparecem no rodapé, no checkout e nas políticas. */
