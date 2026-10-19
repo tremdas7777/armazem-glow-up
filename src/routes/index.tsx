@@ -38,6 +38,7 @@ const CATEGORY_COVERS: Record<string, string> = {
   sapatos: "m5156-892",
   "sapato-casual": "m5848-100",
   bolsas: "m50007-1",
+  cosmeticos: "rs-rosa-selvagem-desodorante",
 };
 const categoryCover = (slug: string) =>
   PRODUCTS.find((p) => p.id === CATEGORY_COVERS[slug] && p.imagens[0]) ??

@@ -3,6 +3,7 @@
 import { PRODUTOS } from "@/lib/catalog-data";
 import { ESPELHOPORTA_JOIAS } from "@/lib/espelho-porta-joias";
 import { FEATURED_SANDAL } from "@/lib/featured-sandal";
+import { ROSA_SELVAGEM } from "@/lib/rosa-selvagem-data";
 
 export type Categoria = { slug: string; nome: string };
 
@@ -47,9 +48,12 @@ export const CATEGORIAS: Categoria[] = [
 ];
 
 /** Produtos à venda (os inativos não aparecem nem podem ser comprados). */
-export const PRODUCTS: Produto[] = [...PRODUTOS, FEATURED_SANDAL, ESPELHOPORTA_JOIAS].filter(
-  (p) => p.ativo !== false,
-);
+export const PRODUCTS: Produto[] = [
+  ...PRODUTOS,
+  FEATURED_SANDAL,
+  ESPELHOPORTA_JOIAS,
+  ...ROSA_SELVAGEM,
+].filter((p) => p.ativo !== false);
 
 const byIdMap = new Map(PRODUCTS.map((p) => [p.id, p]));
 export const getProduct = (id: string) => byIdMap.get(id);
