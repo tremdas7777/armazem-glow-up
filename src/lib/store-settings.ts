@@ -58,7 +58,13 @@ const round = (n: number) => Math.round(n * 100) / 100;
 
 /** Preço de venda e preço "de" de um produto, com o desconto geral aplicado. */
 export function priceOf(p: Produto): { price: number; compareAt: number | null; off: number } {
-  const base = p.precoAntigo && p.precoAntigo > p.preco ? p.precoAntigo : p.preco;
+  // Produto com promoção própria: usa os preços do catálogo (não empilha o desconto geral).
+  if (p.precoAntigo && p.precoAntigo > p.preco) {
+    const price = p.preco;
+    const compareAt = p.precoAntigo;
+    return { price, compareAt, off: Math.round((1 - price / compareAt) * 100) };
+  }
+  const base = p.preco;
   const price = store.discountPct > 0 ? round(base * (1 - store.discountPct / 100)) : p.preco;
   const compareAt = price < base ? base : null;
   return { price, compareAt, off: compareAt ? Math.round((1 - price / compareAt) * 100) : 0 };

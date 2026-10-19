@@ -366,7 +366,7 @@ function ProductPage() {
             <div className="details">
               <details open>
                 <summary>Descrição</summary>
-                <p>{p.descricao}</p>
+                <p className="whitespace-pre-line">{p.descricao}</p>
               </details>
               <details>
                 <summary>Características</summary>

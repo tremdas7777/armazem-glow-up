@@ -1,6 +1,7 @@
 // Catálogo da loja. Os produtos ficam em catalog-data.ts (um por linha, fácil de editar ou gerar).
 // O preço cobrado é sempre calculado no servidor a partir daqui + o desconto geral do /admin.
 import { PRODUTOS } from "@/lib/catalog-data";
+import { ESPELHOPORTA_JOIAS } from "@/lib/espelho-porta-joias";
 import { FEATURED_SANDAL } from "@/lib/featured-sandal";
 
 export type Categoria = { slug: string; nome: string };
@@ -41,10 +42,13 @@ export const CATEGORIAS: Categoria[] = [
   { slug: "sapatos", nome: "Sapatos" },
   { slug: "sapato-casual", nome: "Sapato Casual" },
   { slug: "bolsas", nome: "Bolsas" },
+  { slug: "espelhos", nome: "Espelhos" },
 ];
 
 /** Produtos à venda (os inativos não aparecem nem podem ser comprados). */
-export const PRODUCTS: Produto[] = [...PRODUTOS, FEATURED_SANDAL].filter((p) => p.ativo !== false);
+export const PRODUCTS: Produto[] = [...PRODUTOS, FEATURED_SANDAL, ESPELHOPORTA_JOIAS].filter(
+  (p) => p.ativo !== false,
+);
 
 const byIdMap = new Map(PRODUCTS.map((p) => [p.id, p]));
 export const getProduct = (id: string) => byIdMap.get(id);
